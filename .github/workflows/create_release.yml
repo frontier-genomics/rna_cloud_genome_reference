@@ -1,0 +1,51 @@
+name: create_release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
+      - 'README.md'
+      - '.gitignore'
+      - '.devcontainer'
+      - '.vscode'
+      - 'misc'
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: "rnacloud_runner"
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          show-progress: 'false'
+
+      - name: Build Docker Image
+        run: docker build -t $IMAGE_NAME .
+
+      - name: Run tests
+        run: ./run_tests.sh
+
+      - name: Generate GRC fixes summary
+        run: ./run.sh
+
+      - name: Create version
+        id: create_version
+        uses: anothrNick/github-tag-action@1.73.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.create_version.outputs.tag }}
+          files: |
+            output/gene_alt_contigs_mapping_clinically_relevant.tsv
+          generate_release_notes: true
+          token: ${{ github.token }}

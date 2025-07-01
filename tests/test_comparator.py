@@ -12,7 +12,7 @@ class TestFeatureSequenceHelper:
             Exon("NC_000001.11", 65419, 65433, '+', 'CCCAGATCTCTTCAG', 1),
         ]
 
-        region_sequence_helper = FeatureSequenceHelper("data/GCF_000001405.40_GRCh38.p14/GCF_000001405.40_GRCh38.p14_genomic.fna.gz")
+        region_sequence_helper = FeatureSequenceHelper("tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.NC_000001.11.NC_000021.9.NW_025791815.1.NW_025791813.1.NW_025791812.1.fna.gz")
         response = region_sequence_helper.get_seq_for_feature(input) # type: ignore
 
         assert response == expected, f"Expected {expected}, but got {response}"
@@ -43,7 +43,7 @@ class TestFeatureComparator:
 
     def test_compare_features(self):
         comparator = FeatureComparator("tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.sorted.gtf.gz", 
-                                       "tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.NC_000021.9.NW_025791815.1.NW_025791813.1.NW_025791812.1.fna.gz")
+                                       "tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.NC_000001.11.NC_000021.9.NW_025791815.1.NW_025791813.1.NW_025791812.1.fna.gz")
         
         response = comparator.compare_features(
             primary_chromosome="NC_000021.9",

@@ -15,6 +15,10 @@
 			"installZsh": true,
 			"configureZshAsDefaultShell": true,
 			"installOhMyZsh": true
+		},
+		"ghcr.io/dhoeric/features/act:latest": {},
+		"ghcr.io/devcontainers/features/docker-in-docker": {
+			"version": "latest"
 		}
 	},
 
@@ -38,7 +42,8 @@
 				"ms-python.debugpy",
 				"ms-toolsai.jupyter",
 				"mechatroner.rainbow-csv",
-				"bierner.markdown-mermaid"
+				"bierner.markdown-mermaid",
+				"SanjulaGanepola.github-local-actions"
 			]
 		}
 	},

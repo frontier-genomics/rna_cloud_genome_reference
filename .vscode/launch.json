@@ -8,7 +8,8 @@
             "name": "Python Debugger: assess_grc_fixes",
             "type": "debugpy",
             "request": "launch",
-            "module": "rnacloud_genome_reference.grc_fixes.assess_grc_fixes"
+            "module": "rnacloud_genome_reference.grc_fixes.assess_grc_fixes",
+            "args": ["-o", "output/gene_alt_contigs_mapping_clinically_relevant.tsv"]
         }
     ]
 }

@@ -1,0 +1,32 @@
+name: pull_request
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - .devcontainer/**
+      - .vscode/**
+      - docs/**
+      - README.md
+      - LICENSE
+      - .giitignore
+      - .github/workflows/**
+
+jobs:
+  pull_request:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: "rnacloud_runner"
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          show-progress: 'false'
+
+      - name: Build Docker Image
+        run: docker build -t $IMAGE_NAME .
+
+      - name: Run tests
+        run: ./run_tests.sh

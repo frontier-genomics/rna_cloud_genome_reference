@@ -1,6 +1,8 @@
+import argparse
 import logging
 import os
 from pathlib import Path
+import sys
 
 import numpy as np
 import pandas as pd
@@ -44,8 +46,6 @@ SIMPLIFIED_GRC_FIXES = os.path.join(TEMP_DIR, 'simplified_grc_fixes.tsv')
 
 GENE_ALT_CONTIGS_MAPPING = os.path.join(TEMP_DIR, 'gene_alt_contigs_mapping.tsv')
 GENE_ALT_CONTIGS_COMPARISON = os.path.join(TEMP_DIR, 'gene_alt_contigs_mapping_comparison.tsv')
-
-GENE_ALT_CONTIGS_CLINICALLY_RELEVANT = os.path.join(OUTPUT_DIR, 'gene_alt_contigs_mapping_clinically_relevant.tsv')
 
 def check_and_create_folder(folder_path: str) -> None:
     """Check if a folder exists, if not create it."""
@@ -140,9 +140,22 @@ def flag_clinically_relevant_genes(gene_alt_contigs_comparison_file: str, clinic
     logger.info(f"Loaded {len(clinically_relevant_genes)} clinically relevant genes.")
 
     comparison_results['clinically_relevant_gene'] = np.where(comparison_results['entrez_gene_id'].isin(clinically_relevant_genes['entrez_id']), True, False)
+    logger.info(f"Writing output to {output_file}")
     comparison_results.to_csv(output_file, sep="\t", index=False)
 
 if __name__ == "__main__":
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="GRC fixes assessment pipeline")
+    parser.add_argument("-o", "--output", required=True, help="Path to the output file")
+    
+    args = parser.parse_args()
+
+    # Validate output file path
+    output_file = args.output
+    if not output_file:
+        logger.error("Output file path cannot be empty")
+        sys.exit(1)
+    
     logger.info("Starting GRC fixes assessment...")
 
     check_and_create_folder(DATA_DIR)
@@ -178,6 +191,9 @@ if __name__ == "__main__":
                      gene_alt_contigs_mapping_file=GENE_ALT_CONTIGS_MAPPING,
                      output_file=GENE_ALT_CONTIGS_COMPARISON)
     
+    logger.info("Flag clinically relevant genes...")
     flag_clinically_relevant_genes(gene_alt_contigs_comparison_file=GENE_ALT_CONTIGS_COMPARISON,
                                    clinically_relevant_genes_file=os.path.join(CLINICALLY_RELEVANT_GENES_DESTINATION_FOLDER, CLINICALLY_RELEVANT_GENES_DESTINATION_FILE),
-                                   output_file=GENE_ALT_CONTIGS_CLINICALLY_RELEVANT)
+                                   output_file=output_file)
+    
+    logger.info(f"Pipeline completed successfully. Results written to: {output_file}")
