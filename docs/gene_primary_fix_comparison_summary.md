@@ -15,10 +15,10 @@
 | gene_name                   | Gene name                                                                                                                                     |
 | entrez_gene_id              | NCBI Gene ID / Entrez ID                                                                                                                      |
 | issue_id                    | GRC Issue ID(s)                                                                                                                               |
-| alt_chr_refseq              | Fix contig (Refseq accession) for gene                                                                                                        |
-| alt_chr_ucsc                | Fix contig (UCSC accession) for gene                                                                                                          |
-| alt_scaf_start              | Fix contig start position for gene                                                                                                            |
-| alt_scaf_stop               | Fix contig end position for gene                                                                                                              |
+| alt_chr_refseq              | Fix contig (Refseq accession)                                                                                                                 |
+| alt_chr_ucsc                | Fix contig (UCSC accession)                                                                                                                   |
+| alt_scaf_start              | Fix contig start position                                                                                                                     |
+| alt_scaf_stop               | Fix contig end position                                                                                                                       |
 | primary_contig_transcript   | Primary contig transcript **<sup>1</sup>**                                                                                                    |
 | primary_contig_n_exons      | Primary contig - No. of exons                                                                                                                 |
 | primary_contig_n_introns    | Primary contig - No. of introns                                                                                                               |
