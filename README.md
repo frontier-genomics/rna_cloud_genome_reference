@@ -1,6 +1,10 @@
 # RNACloud genome reference
 
-## Workflow overview
+## Workflows
+
+### Gene Primary VS FIX contig comparison
+
+#### Logic
 
 ```mermaid
 flowchart TD
@@ -37,6 +41,13 @@ flowchart TD
   style K fill:#e1f5fe
   style T fill:#f3e5f5,stroke:#000,stroke-width:2px
 ```
+#### Output
+
+https://github.com/frontier-genomics/rnacloud_genome_reference/releases
+
+#### Schema
+
+[Output schema](docs/gene_primary_fix_comparison_summary.md)
 
 ## Notes
 
