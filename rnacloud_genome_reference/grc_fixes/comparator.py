@@ -4,7 +4,7 @@ import os
 from typing import Literal
 import pysam
 from pathlib import Path
-from rnacloud_genome_reference.gtf import Feature, Exon, Intron, GTFHandler
+from rnacloud_genome_reference.common.gtf import Feature, Exon, Intron, GTFHandler
 from rnacloud_genome_reference.config import Config
 
 import logging

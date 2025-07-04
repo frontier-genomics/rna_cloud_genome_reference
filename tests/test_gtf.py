@@ -1,5 +1,5 @@
-from rnacloud_genome_reference.gtf import GTFHandler
-from rnacloud_genome_reference.gtf import Exon, Intron
+from rnacloud_genome_reference.common.gtf import GTFHandler
+from rnacloud_genome_reference.common.gtf import Exon, Intron
 import pytest
 
 class TestGTFHandler:
