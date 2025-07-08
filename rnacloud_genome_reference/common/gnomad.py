@@ -98,6 +98,8 @@ class GenomicRegionQuerier:
         try:
             # Execute the query
             query_doc = gql(full_query)
+
+            logger.debug(full_query)
             
             # Use sync execution with session context
             with self.client as session:
@@ -135,7 +137,7 @@ class GenomicRegionQuerier:
 
 def query_genomic_regions(
     regions: List[GenomicRegion], 
-    endpoint_url: str,
+    endpoint_url: str = 'https://gnomad.broadinstitute.org/api',
     reference_genome: str = "GRCh38",
     dataset: str = "gnomad_r4",
     headers: Optional[Dict[str, str]] = None
