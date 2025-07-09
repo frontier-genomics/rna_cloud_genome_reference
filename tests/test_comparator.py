@@ -1,6 +1,20 @@
-from rnacloud_genome_reference.grc_fixes.comparator import FeatureSequenceHelper, FeatureComparator
+from typing import List
+from rnacloud_genome_reference.grc_fixes.comparator import FeatureComparisonResult, FeatureSequenceHelper, FeatureComparator
 from rnacloud_genome_reference.gtf import Exon, Feature, Intron
 import pytest
+
+def make_intron(sequence, intron_no=1):
+    """
+    Helper to construct a minimal Intron with a given sequence.
+    """
+    return Intron(
+        chromosome="chr1",
+        start=100,
+        end=200,
+        strand="+",
+        sequence=sequence,
+        intron_no=intron_no,
+    )
 
 class TestFeatureSequenceHelper:
     def test_get_seq_for_region(self):
@@ -65,3 +79,191 @@ class TestFeatureComparator:
         assert response['n_introns_equal'] is True
         assert response['sequences_unequal_n_exons'] == 1
         assert response['sequences_unequal_n_introns'] == 0
+        assert response['splice_sites_unequal_n'] == 0
+
+    
+    @pytest.mark.parametrize("primary_seqs, fix_seqs, expected",
+        [
+            # 1) Both empty → no features to compare
+            ([], [], 0),
+
+            # 2) Equal single motif → 0 mismatches
+            (["GTAG"], ["GTAG"], 0),
+
+            # 3) 5' motif mismatch only → +1
+            (["CTAG"], ["GTAG"], 1),
+
+            # 4) 3' motif mismatch only → +1
+            (["ATCC"], ["ATAG"], 1),
+
+            # 5) Both 5' and 3' mismatch → +2
+            (["CTCC"], ["GTAG"], 2),
+
+            # 6) Multiple introns: only one of the two differs at either end → +1
+            (["GTAG", "CTAG"], ["GTAG", "GTAG"], 1),
+
+            # 8) Length mismatch → returns -1 immediately
+            (["GTAG"], ["GTAG", "CTAG"], -1),
+        ],
+    )
+    def test_compare_splice_site_motifs_parametrized(self, primary_seqs: List[str], fix_seqs: List[str], expected: int):
+        primary = [
+            make_intron(seq, intron_no=i + 1) for i, seq in enumerate(primary_seqs)
+        ]
+        fix = [
+            make_intron(seq, intron_no=i + 1) for i, seq in enumerate(fix_seqs)
+        ]
+
+        response = FeatureComparator.compare_splice_site_motifs(primary, fix)
+        assert response == expected, f"Expected {expected} but got {response} for primary: {primary_seqs} and fix: {fix_seqs}"
+
+    @pytest.mark.parametrize("primary_seqs, fix_seqs, expected", [
+        ([
+            Exon("NC_000001.11", 65419, 65433, '+', 'CCCAGATCTCTTCAG', 1),
+            Exon("NC_000001.11", 65419, 65433, '+', 'CCCAGATCTCTTCAG', 2)
+        ],
+        [
+            Exon("NC_000001.11", 65419, 65433, '+', 'CCCAGATCTCTTCAG', 1),
+            Exon("NC_000001.11", 65419, 65433, '+', 'CCCAGATCTCTTCAT', 2)
+        ],
+        False),
+        ([
+            Exon("NC_000001.11", 65419, 65433, '+', 'CCCAGATCTCTTCAG', 1),
+            Exon("NC_000001.11", 65419, 65433, '+', 'CCCAGATCTCTTCAG', 2)
+        ],
+        [
+            Exon("NC_000001.11", 65419, 65433, '+', 'CCCAGATCTCTTCAG', 2),
+            Exon("NC_000001.11", 65419, 65433, '+', 'CCCAGATCTCTTCAT', 1)
+        ],
+        True),
+        ([
+            Exon("NC_000001.11", 65419, 65433, '+', 'CCCAGATCTCTTCAG', 1),
+            Exon("NC_000001.11", 65419, 65433, '+', 'CCCAGATCTCTTCAG', 2)
+        ],
+        [
+            Exon("NC_000001.11", 65419, 65433, '+', 'CCCAGATCTCTTCAG', 2)
+        ],
+        None)
+    ])
+    def test_flag_discordant_exon_numbering(self, primary_seqs: List[Exon], fix_seqs: List[Exon], expected: bool):
+        """
+        Test the flag_discordant_exon_numbering method with a specific case.
+        """
+        response = FeatureComparator.flag_discordant_exon_numbering(primary_seqs, fix_seqs)
+        assert response == expected, f"Expected {expected} but got {response} for primary: {primary_seqs} and fix: {fix_seqs}"
+
+    @pytest.mark.parametrize(
+        "instance,expected_status",
+        [
+            # Identical
+            (
+                FeatureComparisonResult(
+                    primary_contig_transcript="tx1",
+                    primary_contig_n_exons=5,
+                    primary_contig_n_introns=4,
+                    fix_contig_transcript="tx2",
+                    fix_contig_n_exons=5,
+                    fix_contig_n_introns=4,
+                    n_exons_equal=True,
+                    n_introns_equal=True,
+                    sequences_unequal_n_exons=0,
+                    sequences_unequal_n_introns=0,
+                    splice_sites_unequal_n=0,
+                    discordant_exon_numbering=None,
+                ),
+                "Identical",
+            ),
+            # Different - No. of exons or introns differ
+            (
+                FeatureComparisonResult(
+                    primary_contig_transcript="tx1",
+                    primary_contig_n_exons=5,
+                    primary_contig_n_introns=4,
+                    fix_contig_transcript="tx2",
+                    fix_contig_n_exons=6,
+                    fix_contig_n_introns=4,
+                    n_exons_equal=False,
+                    n_introns_equal=True,
+                    sequences_unequal_n_exons=0,
+                    sequences_unequal_n_introns=0,
+                    splice_sites_unequal_n=0,
+                    discordant_exon_numbering=None,
+                ),
+                "Different - No. of exons or introns differ",
+            ),
+            # Different - Sequences differ
+            (
+                FeatureComparisonResult(
+                    primary_contig_transcript="tx1",
+                    primary_contig_n_exons=5,
+                    primary_contig_n_introns=4,
+                    fix_contig_transcript="tx2",
+                    fix_contig_n_exons=5,
+                    fix_contig_n_introns=4,
+                    n_exons_equal=True,
+                    n_introns_equal=True,
+                    sequences_unequal_n_exons=1,
+                    sequences_unequal_n_introns=0,
+                    splice_sites_unequal_n=0,
+                    discordant_exon_numbering=None,
+                ),
+                "Different - Sequences differ",
+            ),
+            # Different - Splice-site sequences differ
+            (
+                FeatureComparisonResult(
+                    primary_contig_transcript="tx1",
+                    primary_contig_n_exons=5,
+                    primary_contig_n_introns=4,
+                    fix_contig_transcript="tx2",
+                    fix_contig_n_exons=5,
+                    fix_contig_n_introns=4,
+                    n_exons_equal=True,
+                    n_introns_equal=True,
+                    sequences_unequal_n_exons=0,
+                    sequences_unequal_n_introns=0,
+                    splice_sites_unequal_n=1,
+                    discordant_exon_numbering=None,
+                ),
+                "Different - Splice-site sequences differ",
+            ),
+            # Different - Exon numbering is discordant
+            (
+                FeatureComparisonResult(
+                    primary_contig_transcript="tx1",
+                    primary_contig_n_exons=5,
+                    primary_contig_n_introns=4,
+                    fix_contig_transcript="tx2",
+                    fix_contig_n_exons=5,
+                    fix_contig_n_introns=4,
+                    n_exons_equal=True,
+                    n_introns_equal=True,
+                    sequences_unequal_n_exons=0,
+                    sequences_unequal_n_introns=0,
+                    splice_sites_unequal_n=0,
+                    discordant_exon_numbering=True,
+                ),
+                "Different - Exon numbering is discordant",
+            ),
+            # Not comparable: fix_contig_transcript is None
+            (
+                FeatureComparisonResult(
+                    primary_contig_transcript="tx1",
+                    primary_contig_n_exons=5,
+                    primary_contig_n_introns=4,
+                    fix_contig_transcript=None,
+                    fix_contig_n_exons=5,
+                    fix_contig_n_introns=4,
+                    n_exons_equal=True,
+                    n_introns_equal=True,
+                    sequences_unequal_n_exons=0,
+                    sequences_unequal_n_introns=0,
+                    splice_sites_unequal_n=0,
+                    discordant_exon_numbering=None,
+                ),
+                "Not comparable",
+            ),
+        ]
+    )
+    def test_comparison_status(self, instance: FeatureComparisonResult, expected_status: str):
+        assert instance.comparison_status == expected_status
