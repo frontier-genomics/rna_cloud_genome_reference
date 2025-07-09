@@ -170,6 +170,8 @@ class TestFeatureComparator:
                     sequences_unequal_n_introns=0,
                     splice_sites_unequal_n=0,
                     discordant_exon_numbering=None,
+                    primary_contig_transcript_partial=False,
+                    fix_contig_transcript_partial=False
                 ),
                 "Identical",
             ),
@@ -188,6 +190,8 @@ class TestFeatureComparator:
                     sequences_unequal_n_introns=0,
                     splice_sites_unequal_n=0,
                     discordant_exon_numbering=None,
+                    primary_contig_transcript_partial=False,
+                    fix_contig_transcript_partial=False
                 ),
                 "Different - No. of exons or introns differ",
             ),
@@ -206,6 +210,8 @@ class TestFeatureComparator:
                     sequences_unequal_n_introns=0,
                     splice_sites_unequal_n=0,
                     discordant_exon_numbering=None,
+                    primary_contig_transcript_partial=False,
+                    fix_contig_transcript_partial=False
                 ),
                 "Different - Sequences differ",
             ),
@@ -224,6 +230,8 @@ class TestFeatureComparator:
                     sequences_unequal_n_introns=0,
                     splice_sites_unequal_n=1,
                     discordant_exon_numbering=None,
+                    primary_contig_transcript_partial=False,
+                    fix_contig_transcript_partial=False
                 ),
                 "Different - Splice-site sequences differ",
             ),
@@ -242,6 +250,8 @@ class TestFeatureComparator:
                     sequences_unequal_n_introns=0,
                     splice_sites_unequal_n=0,
                     discordant_exon_numbering=True,
+                    primary_contig_transcript_partial=False,
+                    fix_contig_transcript_partial=False
                 ),
                 "Different - Exon numbering is discordant",
             ),
@@ -260,9 +270,30 @@ class TestFeatureComparator:
                     sequences_unequal_n_introns=0,
                     splice_sites_unequal_n=0,
                     discordant_exon_numbering=None,
+                    primary_contig_transcript_partial=False,
+                    fix_contig_transcript_partial=False
                 ),
                 "Not comparable",
             ),
+            (
+                FeatureComparisonResult(
+                    primary_contig_transcript="tx1",
+                    primary_contig_n_exons=5,
+                    primary_contig_n_introns=4,
+                    fix_contig_transcript='tx1',
+                    fix_contig_n_exons=5,
+                    fix_contig_n_introns=4,
+                    n_exons_equal=True,
+                    n_introns_equal=True,
+                    sequences_unequal_n_exons=0,
+                    sequences_unequal_n_introns=0,
+                    splice_sites_unequal_n=0,
+                    discordant_exon_numbering=None,
+                    primary_contig_transcript_partial=False,
+                    fix_contig_transcript_partial=True
+                ),
+                "Not comparable - Partial transcript annotation in GTF file",
+            )
         ]
     )
     def test_comparison_status(self, instance: FeatureComparisonResult, expected_status: str):

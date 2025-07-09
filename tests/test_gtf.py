@@ -59,3 +59,13 @@ class TestGTFHandler:
     def test_derive_introns_from_exons(self, exons, expected):
         response = GTFHandler.derive_introns_from_exons(exons)
         assert response == expected
+
+
+    @pytest.mark.parametrize("chromosome, start, end, transcript_id, expected", [
+        ('NW_012132919.1', 23863, 144565, 'NM_130797.4', True),
+        ('NC_000007.14', 153748133, 154894285, 'NM_130797.4', False)
+    ])
+    def test_is_transcript_partial(self, gtf_hander: GTFHandler, chromosome: str, start: int, end: int, transcript_id: str, expected: bool):
+        response = gtf_hander.is_transcript_partial(chromosome, start, end, transcript_id)
+        assert response == expected, f"Expected {expected} but got {response} for transcript {transcript_id} in {chromosome}:{start}-{end}"
+

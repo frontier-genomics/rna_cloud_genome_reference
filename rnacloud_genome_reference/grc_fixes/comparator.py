@@ -13,10 +13,12 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class FeatureComparisonResult:
-    primary_contig_transcript: str | None
+    primary_contig_transcript: str
+    primary_contig_transcript_partial: bool
     primary_contig_n_exons: int
     primary_contig_n_introns: int
     fix_contig_transcript: str | None
+    fix_contig_transcript_partial: bool | None
     fix_contig_n_exons: int
     fix_contig_n_introns: int
     n_exons_equal: bool
@@ -35,10 +37,11 @@ class FeatureComparisonResult:
                                "Different - Unknown reason",
                                "Different - Splice-site sequences differ",
                                "Different - Exon numbering is discordant",
+                               "Not comparable - Partial transcript annotation in GTF file",
                                "Not comparable",
                                "Unknown"] = field(default="Unknown", init=False)
 
-    def __post_init__(self): 
+    def __post_init__(self):
         if (self.n_exons_equal and self.n_introns_equal and self.sequences_unequal_n_exons == 0 and self.sequences_unequal_n_introns == 0):
             self.comparison_status = "Identical"
         
@@ -56,6 +59,9 @@ class FeatureComparisonResult:
 
         if self.primary_contig_transcript is not None and self.fix_contig_transcript is None:
             self.comparison_status = "Not comparable"
+
+        if self.primary_contig_transcript_partial or self.fix_contig_transcript_partial:
+            self.comparison_status = "Not comparable - Partial transcript annotation in GTF file"
         
 class FeatureSequenceHelper:
     def __init__(self, fasta: str):
@@ -171,6 +177,12 @@ class FeatureComparator:
         logger.info(f"Comparing regions: Primary {primary_chromosome}:{primary_start}-{primary_end} with Fix {fix_chromosome}:{fix_start}-{fix_end} for Gene ID: {entrez_gene_id}")
 
         primary_transcript = self.obtain_transcript(primary_chromosome, primary_start, primary_end, entrez_gene_id, gtf_handler)
+        primary_transcript_partial = gtf_handler.is_transcript_partial(
+            chromosome=primary_chromosome,
+            start=primary_start,
+            end=primary_end,
+            transcript_id=primary_transcript
+        )
 
         primary_exons = gtf_handler.get_exons_by_transcript(
             chromosome=primary_chromosome,
@@ -192,6 +204,8 @@ class FeatureComparator:
         # This is to ensure that we do not proceed with an empty list of exons,
         # which would lead to errors in subsequent processing.
         # This can occur if the primary transcript does not have a corresponding fix region in the GTF file.
+        fix_transcript_partial = None
+
         if len(fix_exons) == 0:
             logger.warning(f"No exons found in fix region {fix_chromosome}:{fix_start}-{fix_end} for transcript {primary_transcript}.")
             fix_transcript = None
@@ -199,6 +213,12 @@ class FeatureComparator:
         else:
             fix_transcript = primary_transcript
             fix_introns = gtf_handler.derive_introns_from_exons(exons=fix_exons)
+            fix_transcript_partial = gtf_handler.is_transcript_partial(
+                chromosome=fix_chromosome,
+                start=fix_start,
+                end=fix_end,
+                transcript_id=fix_transcript
+            )
 
         n_exons_equal = len(primary_exons) == len(fix_exons)
         n_introns_equal = len(primary_introns) == len(fix_introns)
@@ -228,9 +248,11 @@ class FeatureComparator:
 
         result = FeatureComparisonResult(
             primary_contig_transcript=primary_transcript,
+            primary_contig_transcript_partial=primary_transcript_partial,
             primary_contig_n_exons=len(primary_exons),
             primary_contig_n_introns=len(primary_introns),
             fix_contig_transcript=fix_transcript,
+            fix_contig_transcript_partial=fix_transcript_partial,
             fix_contig_n_exons=len(fix_exons),
             fix_contig_n_introns=len(fix_introns),
             n_exons_equal=n_exons_equal,
