@@ -91,6 +91,20 @@ class GTFHandler:
         
         logger.debug(f"Obtained transcript: {transcript_id}")
         return transcript_id
+    
+    # NCBI Sequence Viewer documentation states that whenever only part of a feature is present in the requested region, “rows for truncated features will contain the attribute partial=true in column 9.
+    # https://www.ncbi.nlm.nih.gov/tools/sviewer/seqtrackdata/
+    def is_transcript_partial(self, chromosome: str, start: int, end: int, transcript_id: str) -> bool:
+        logger.info(f"Checking if transcript {transcript_id} is partial at location {chromosome}:{start}-{end}")
+
+        for record in self.tbx.fetch(chromosome, start, end, parser=pysam.asGTF()):
+            if record['feature'] == 'exon' and re.match(f'.*\"GenBank:{transcript_id}\";.*', record['attributes']):
+                if 'partial "true";' in record['attributes']:
+                    logger.debug(f"Transcript {transcript_id} is partial.")
+                    return True
+                
+        logger.debug(f"Transcript {transcript_id} is not partial.")
+        return False
                     
     def get_exons_by_transcript(self, chromosome: str, start: int, end: int, transcript_id: str) -> list[Exon]:
         logger.info(f"Obtaining exons for transcript: {transcript_id} at location {chromosome}:{start}-{end}")
