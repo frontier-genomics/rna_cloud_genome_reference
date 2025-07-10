@@ -277,6 +277,25 @@ class TestFeatureComparator:
             ),
             (
                 FeatureComparisonResult(
+                    primary_contig_transcript="NT_187651.1",
+                    primary_contig_n_exons=5,
+                    primary_contig_n_introns=4,
+                    fix_contig_transcript=None,
+                    fix_contig_n_exons=5,
+                    fix_contig_n_introns=4,
+                    n_exons_equal=True,
+                    n_introns_equal=True,
+                    sequences_unequal_n_exons=0,
+                    sequences_unequal_n_introns=0,
+                    splice_sites_unequal_n=0,
+                    discordant_exon_numbering=None,
+                    primary_contig_transcript_partial=True,
+                    fix_contig_transcript_partial=None
+                ),
+                "Not comparable",
+            ),
+            (
+                FeatureComparisonResult(
                     primary_contig_transcript="tx1",
                     primary_contig_n_exons=5,
                     primary_contig_n_introns=4,

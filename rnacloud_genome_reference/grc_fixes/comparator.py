@@ -60,7 +60,7 @@ class FeatureComparisonResult:
         if self.primary_contig_transcript is not None and self.fix_contig_transcript is None:
             self.comparison_status = "Not comparable"
 
-        if self.primary_contig_transcript_partial or self.fix_contig_transcript_partial:
+        if self.primary_contig_transcript is not None and self.fix_contig_transcript is not None and self.primary_contig_transcript_partial or self.fix_contig_transcript_partial:
             self.comparison_status = "Not comparable - Partial transcript annotation in GTF file"
         
 class FeatureSequenceHelper:
