@@ -48,13 +48,6 @@
 **<sup>2</sup>** Fix contig - No. of exons/introns
 - If number of exons/introns differ between Primary/Fix, this is set to -1
 
-
-Different - Exon numbering is discordant
-Different - No. of exons or introns differ
-Different - Sequences differ
-Different - Splice-site sequences differ
-Identical
-
 **<sup>3</sup>** Comparison between gene on primary and FIX contig
 - **Not comparable** - When either the fix contig transcript or primary contig transcript is missing (None)
 - **Identical** - When all of the following conditions are met:
