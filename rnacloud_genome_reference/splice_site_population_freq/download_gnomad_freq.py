@@ -3,7 +3,8 @@ import os
 
 import pandas as pd
 
-from rnacloud_genome_reference.grc_fixes.assess_grc_fixes import ANNOTATION_DESTINATION_FILE, ANNOTATION_DESTINATION_FOLDER, CLINICALLY_RELEVANT_GENES_DESTINATION_FILE, CLINICALLY_RELEVANT_GENES_DESTINATION_FOLDER, GENOME_REPORT_DESTINATION_FILE, GENOME_REPORT_DESTINATION_FOLDER, PROTEIN_CODING_GENES, TEMP_DIR
+from rnacloud_genome_reference.grc_fixes.assess_grc_fixes import ANNOTATION_DESTINATION_FILE, ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_SORTED_FILE, ANNOTATION_URL, CLINICALLY_RELEVANT_GENES_DESTINATION_FILE, CLINICALLY_RELEVANT_GENES_DESTINATION_FOLDER, CLINICALLY_RELEVANT_GENES_URL, GENOME_REPORT_DESTINATION_FILE, GENOME_REPORT_DESTINATION_FOLDER, GENOME_REPORT_URL, PROTEIN_CODING_GENES, TEMP_DIR
+from rnacloud_genome_reference.grc_fixes.common import download_file, sort_index_gtf_file
 from rnacloud_genome_reference.gtf import extract_protein_coding_genes
 from rnacloud_genome_reference.splice_site_population_freq.helper import get_clinically_significant_protein_coding_genes
 from rnacloud_genome_reference.config import Config
@@ -63,6 +64,17 @@ def download_gnomad_frequency(clinically_significant_protein_coding_genes: str, 
 
 if __name__ == "__main__":
     logger.info("Starting the gnomAD frequency download process...")
+
+    logger.info("Downloading GRC annotation file...")
+    download_file(ANNOTATION_URL, ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_FILE)
+    sort_index_gtf_file(os.path.join(ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_FILE),
+                        os.path.join(ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_SORTED_FILE))
+    
+    logger.info("Downloading GRC genome report...")
+    download_file(GENOME_REPORT_URL, GENOME_REPORT_DESTINATION_FOLDER, GENOME_REPORT_DESTINATION_FILE)
+
+    logger.info("Downloading clinically relevant genes file...")
+    download_file(CLINICALLY_RELEVANT_GENES_URL, CLINICALLY_RELEVANT_GENES_DESTINATION_FOLDER, CLINICALLY_RELEVANT_GENES_DESTINATION_FILE)
 
     logger.info("Starting to extract protein-coding genes from GRC...")
     extract_protein_coding_genes(os.path.join(ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_FILE), PROTEIN_CODING_GENES)
