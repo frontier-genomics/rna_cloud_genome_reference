@@ -3,7 +3,8 @@ import os
 
 import pandas as pd
 
-from rnacloud_genome_reference.grc_fixes.assess_grc_fixes import CLINICALLY_RELEVANT_GENES_DESTINATION_FILE, CLINICALLY_RELEVANT_GENES_DESTINATION_FOLDER, GENOME_REPORT_DESTINATION_FILE, GENOME_REPORT_DESTINATION_FOLDER, PROTEIN_CODING_GENES, TEMP_DIR
+from rnacloud_genome_reference.grc_fixes.assess_grc_fixes import ANNOTATION_DESTINATION_FILE, ANNOTATION_DESTINATION_FOLDER, CLINICALLY_RELEVANT_GENES_DESTINATION_FILE, CLINICALLY_RELEVANT_GENES_DESTINATION_FOLDER, GENOME_REPORT_DESTINATION_FILE, GENOME_REPORT_DESTINATION_FOLDER, PROTEIN_CODING_GENES, TEMP_DIR
+from rnacloud_genome_reference.gtf import extract_protein_coding_genes
 from rnacloud_genome_reference.splice_site_population_freq.helper import get_clinically_significant_protein_coding_genes
 from rnacloud_genome_reference.config import Config
 from rnacloud_genome_reference.common.gnomad import GnomadProvider, GNOMAD_VERSION, GNOMAD_REFERENCE_GENOME
@@ -61,6 +62,11 @@ def download_gnomad_frequency(clinically_significant_protein_coding_genes: str, 
             logger.error(f"Error querying gnomAD for {chrom}:{start}-{stop}: {e}")
 
 if __name__ == "__main__":
+    logger.info("Starting the gnomAD frequency download process...")
+
+    logger.info("Starting to extract protein-coding genes from GRC...")
+    extract_protein_coding_genes(os.path.join(ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_FILE), PROTEIN_CODING_GENES)
+
     logger.info("Starting to get clinically significant protein-coding genes...")
     get_clinically_significant_protein_coding_genes(
         protein_coding_genes_path=PROTEIN_CODING_GENES,
@@ -69,8 +75,11 @@ if __name__ == "__main__":
         output_path=os.path.join(TEMP_DIR, 'clinically_significant_protein_coding_genes.tsv')
     )
 
+    logger.info("Downloading gnomAD frequency data for clinically significant protein-coding genes...")
     download_gnomad_frequency(
         clinically_significant_protein_coding_genes=os.path.join(TEMP_DIR, 'clinically_significant_protein_coding_genes.tsv'),
         gnomad_data_path=GNOMAD_DATA_PATH
     )
+
+    logger.info("gnomAD frequency download process completed.")
 
