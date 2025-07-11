@@ -1,0 +1,76 @@
+import logging
+import os
+
+import pandas as pd
+
+from rnacloud_genome_reference.grc_fixes.assess_grc_fixes import CLINICALLY_RELEVANT_GENES_DESTINATION_FILE, CLINICALLY_RELEVANT_GENES_DESTINATION_FOLDER, GENOME_REPORT_DESTINATION_FILE, GENOME_REPORT_DESTINATION_FOLDER, PROTEIN_CODING_GENES, TEMP_DIR
+from rnacloud_genome_reference.splice_site_population_freq.helper import get_clinically_significant_protein_coding_genes
+from rnacloud_genome_reference.config import Config
+from rnacloud_genome_reference.common.gnomad import GnomadProvider, GNOMAD_VERSION, GNOMAD_REFERENCE_GENOME
+
+logger = logging.getLogger(__name__)
+
+DATA_DIR = Config.get_str('folders', 'data_dir')
+TEMP_DIR = Config.get_str('folders', 'temp_dir')
+OUTPUT_DIR = Config.get_str('folders', 'output_dir')
+
+GNOMAD_DATA_PATH = os.path.join(DATA_DIR, 'gnomad', GNOMAD_REFERENCE_GENOME, GNOMAD_VERSION)
+
+def download_gnomad_frequency(clinically_significant_protein_coding_genes: str, gnomad_data_path: str) -> None:
+    logger.info("Loading clinically significant protein-coding genes...")
+    data = pd.read_csv(clinically_significant_protein_coding_genes, sep='\t', low_memory=False)
+
+    gnomad_provider = GnomadProvider(reference_genome=GNOMAD_REFERENCE_GENOME, gnomad_version=GNOMAD_VERSION)
+
+    if not os.path.exists(GNOMAD_DATA_PATH):
+        os.makedirs(GNOMAD_DATA_PATH)
+
+    for _, row in data.iterrows():
+        logger.info(f"Processing chromosome: {row['chrom']}, gene: {row['gene_name']}, entrez_gene_id: {row['entrez_gene_id']}")
+        chrom = row['chrom']
+        start = row['start']
+        stop = row['end']
+
+        output_filename = os.path.join(GNOMAD_DATA_PATH, f"gnomad_frequencies_{row['chrom']}_{row['entrez_gene_id']}.tsv")
+
+        if os.path.exists(output_filename):
+            logger.info(f"File {output_filename} already exists. Skipping gnomAD query for {chrom}:{start}-{stop}.")
+            continue
+        
+        try:
+            logger.info(f"Querying gnomAD for region {chrom}:{start}-{stop}")
+            gnomad_frequencies = gnomad_provider.query_gnomad(chrom, start, stop)
+            if not gnomad_frequencies:
+                logger.warning(f"No gnomAD data found for {chrom}:{start}-{stop}")
+                continue
+
+            if len(gnomad_frequencies) == 0:
+                logger.warning(f"No variants found in gnomAD for {chrom}:{start}-{stop}")
+                continue
+            else:
+                logger.info(f"Found {len(gnomad_frequencies)} variants in gnomAD for {chrom}:{start}-{stop}")
+                gnomad_frequencies_df = pd.DataFrame(gnomad_frequencies)
+
+                gnomad_frequencies_df.query('lof_filter.isna() and filters_count == 0')[['chrom','pos','alt','ac','an','hemizygote_count','homozygote_count']].to_csv(
+                    output_filename,
+                    sep='\t',
+                    index=False
+                )
+
+        except Exception as e:
+            logger.error(f"Error querying gnomAD for {chrom}:{start}-{stop}: {e}")
+
+if __name__ == "__main__":
+    logger.info("Starting to get clinically significant protein-coding genes...")
+    get_clinically_significant_protein_coding_genes(
+        protein_coding_genes_path=PROTEIN_CODING_GENES,
+        clinically_significant_genes_path=os.path.join(CLINICALLY_RELEVANT_GENES_DESTINATION_FOLDER, CLINICALLY_RELEVANT_GENES_DESTINATION_FILE),
+        genome_regions_report_path=os.path.join(GENOME_REPORT_DESTINATION_FOLDER, GENOME_REPORT_DESTINATION_FILE),
+        output_path=os.path.join(TEMP_DIR, 'clinically_significant_protein_coding_genes.tsv')
+    )
+
+    download_gnomad_frequency(
+        clinically_significant_protein_coding_genes=os.path.join(TEMP_DIR, 'clinically_significant_protein_coding_genes.tsv'),
+        gnomad_data_path=GNOMAD_DATA_PATH
+    )
+
