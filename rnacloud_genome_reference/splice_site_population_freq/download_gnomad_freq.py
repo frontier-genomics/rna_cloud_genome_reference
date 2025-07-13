@@ -33,7 +33,7 @@ def download_gnomad_frequency(clinically_significant_protein_coding_genes: str, 
         start = row['start']
         stop = row['end']
 
-        output_filename = os.path.join(GNOMAD_DATA_PATH, f"gnomad_frequencies_{row['chrom']}_{row['entrez_gene_id']}.tsv")
+        output_filename = os.path.join(GNOMAD_DATA_PATH, f"gnomad_frequencies_{row['chrom']}_{row['entrez_gene_id']}.tsv.gz")
 
         if os.path.exists(output_filename):
             logger.info(f"File {output_filename} already exists. Skipping gnomAD query for {chrom}:{start}-{stop}.")
@@ -56,7 +56,8 @@ def download_gnomad_frequency(clinically_significant_protein_coding_genes: str, 
                 gnomad_frequencies_df.query('lof_filter.isna() and filters_count == 0')[['chrom','pos','alt','ac','an','hemizygote_count','homozygote_count']].to_csv(
                     output_filename,
                     sep='\t',
-                    index=False
+                    index=False,
+                    compression='gzip'
                 )
 
         except Exception as e:
