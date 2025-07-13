@@ -35,6 +35,7 @@ class SpliceJunctionPosition:
     exon_no: int
     category: Literal['Donor', 'Acceptor']
     pos: int
+    dist_from_exon: Literal[1,2,-1, -2]
 
 def extract_protein_coding_genes(gtf_file_path: str, output_file_path: str) -> None:
     logger.info(f"Extracting protein coding genes from {gtf_file_path} to {output_file_path}")
@@ -253,7 +254,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Donor',
-                            pos=exon.end + 1
+                            pos=exon.end + 1,
+                            dist_from_exon=1
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -262,7 +264,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Donor',
-                            pos=exon.end + 2
+                            pos=exon.end + 2,
+                            dist_from_exon=2
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -272,7 +275,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Acceptor',
-                            pos=exon.start - 2
+                            pos=exon.start - 2,
+                            dist_from_exon=-2
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -281,7 +285,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Acceptor',
-                            pos=exon.start - 1
+                            pos=exon.start - 1,
+                            dist_from_exon=-1
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -291,7 +296,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Acceptor',
-                            pos=exon.start - 2
+                            pos=exon.start - 2,
+                            dist_from_exon=-2
                         )
 
                         splice_junction_positions.append(sj_pos)
@@ -301,7 +307,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Acceptor',
-                            pos=exon.start - 1
+                            pos=exon.start - 1,
+                            dist_from_exon=-1
                         )
                         splice_junction_positions.append(sj_pos)
  
@@ -310,7 +317,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Donor',
-                            pos=exon.end + 1
+                            pos=exon.end + 1,
+                            dist_from_exon=1
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -319,7 +327,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Donor',
-                            pos=exon.end + 2
+                            pos=exon.end + 2,
+                            dist_from_exon=2
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -330,7 +339,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Donor',
-                            pos=exon.start - 2
+                            pos=exon.start - 2,
+                            dist_from_exon=2
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -339,7 +349,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Donor',
-                            pos=exon.start - 1
+                            pos=exon.start - 1,
+                            dist_from_exon=1
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -349,7 +360,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Acceptor',
-                            pos=exon.end + 1
+                            pos=exon.end + 1,
+                            dist_from_exon=1
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -358,7 +370,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Acceptor',
-                            pos=exon.end + 2
+                            pos=exon.end + 2,
+                            dist_from_exon=2
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -368,7 +381,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Donor',
-                            pos=exon.start - 2
+                            pos=exon.start - 2,
+                            dist_from_exon=2
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -377,17 +391,8 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Donor',
-                            pos=exon.start - 1
-                        )
-                        splice_junction_positions.append(sj_pos)
-
-
-                        sj_pos = SpliceJunctionPosition(
-                            chrom=exon.chromosome,
-                            transcript=transcript,
-                            exon_no=exon.exon_no,
-                            category='Acceptor',
-                            pos=exon.end + 1
+                            pos=exon.start - 1,
+                            dist_from_exon=1
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -396,7 +401,18 @@ class GTFHandler:
                             transcript=transcript,
                             exon_no=exon.exon_no,
                             category='Acceptor',
-                            pos=exon.end + 2
+                            pos=exon.end + 1,
+                            dist_from_exon=1
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Acceptor',
+                            pos=exon.end + 2,
+                            dist_from_exon=2
                         )
                         splice_junction_positions.append(sj_pos)
 
