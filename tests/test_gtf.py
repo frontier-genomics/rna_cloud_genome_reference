@@ -71,24 +71,24 @@ class TestGTFHandler:
 
     @pytest.mark.parametrize("chrom, start, end, entrez_gene_id, expected", [
         ('NC_000001.11', 65419, 71585, 79501, [
-            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 1, 'Donor', 65434),
-            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 1, 'Donor', 65435),
-            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 2, 'Acceptor', 65518),
-            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 2, 'Acceptor', 65519),
-            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 2, 'Donor', 65574),
-            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 2, 'Donor', 65575),
-            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 3, 'Acceptor', 69035),
-            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 3, 'Acceptor', 69036)
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 1, 'Donor', 65434, 1),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 1, 'Donor', 65435, 2),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 2, 'Acceptor', 65518, -2),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 2, 'Acceptor', 65519, -1),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 2, 'Donor', 65574, 1),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 2, 'Donor', 65575, 2),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 3, 'Acceptor', 69035, -2),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 3, 'Acceptor', 69036, -1)
         ]),
         ('NC_000011.10', 5225464, 5227071, 3043, [
-            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 3, 'Acceptor', 5225727),
-            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 3, 'Acceptor', 5225728),
-            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 2, 'Donor', 5226575),
-            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 2, 'Donor', 5226576),
-            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 2, 'Acceptor', 5226800),
-            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 2, 'Acceptor', 5226801),
-            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 1, 'Donor', 5226928),
-            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 1, 'Donor', 5226929)
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 3, 'Acceptor', 5225727, -1),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 3, 'Acceptor', 5225728, -2),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 2, 'Donor', 5226575, 2),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 2, 'Donor', 5226576, 1),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 2, 'Acceptor', 5226800, -1),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 2, 'Acceptor', 5226801, -2),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 1, 'Donor', 5226928, 2),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 1, 'Donor', 5226929, 1)
         ]),
         ('NC_000007.14', 73680918, 73683453, 84277, [])
 
