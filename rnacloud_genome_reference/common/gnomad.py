@@ -75,17 +75,17 @@ class GnomadProvider:
         try:
             logger.debug(f"Query: {graphql_query}")
             logger.debug(f"Variables: {variables}")
-            response = requests.post(url, headers=headers, data=json.dumps(body))
+            response = requests.post(url, headers=headers, data=json.dumps(body), timeout=600)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             print(f"HTTP Request failed: {e}")
-            return []
+            raise ValueError(f"HTTP Request failed for region {chrom}:{start}-{stop}") from e
         data = response.json()
         try:
             variants = data["data"]["region"]["variants"]
         except (KeyError, TypeError):
             print(f"Malformed response or no data for region {chrom}:{start}-{stop}")
-            return []
+            raise ValueError(f"Malformed response or no data for region {chrom}:{start}-{stop}")
         results = []
         for var in variants:
             joint = var.get("joint", {})
