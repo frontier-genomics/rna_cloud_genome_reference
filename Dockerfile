@@ -12,6 +12,23 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install DuckDB CLI - detect architecture and download appropriate binary
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        DUCKDB_ARCH="amd64"; \
+    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+        DUCKDB_ARCH="arm64"; \
+    else \
+        echo "Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    wget -q https://github.com/duckdb/duckdb/releases/latest/download/duckdb_cli-linux-${DUCKDB_ARCH}.zip \
+    && unzip duckdb_cli-linux-${DUCKDB_ARCH}.zip \
+    && mv duckdb /usr/local/bin/ \
+    && chmod +x /usr/local/bin/duckdb \
+    && rm duckdb_cli-linux-${DUCKDB_ARCH}.zip && \
+    /usr/local/bin/duckdb --version && \
+    echo "DuckDB CLI installed successfully"
+
 # Create a non-root user for development
 ARG USERNAME=devuser
 ARG USER_UID=1000
