@@ -1,4 +1,4 @@
-from rnacloud_genome_reference.gtf import GTFHandler
+from rnacloud_genome_reference.gtf import GTFHandler, SpliceJunctionPosition
 from rnacloud_genome_reference.gtf import Exon, Intron
 import pytest
 
@@ -69,3 +69,38 @@ class TestGTFHandler:
         response = gtf_hander.is_transcript_partial(chromosome, start, end, transcript_id)
         assert response == expected, f"Expected {expected} but got {response} for transcript {transcript_id} in {chromosome}:{start}-{end}"
 
+    @pytest.mark.parametrize("chrom, start, end, entrez_gene_id, expected", [
+        ('NC_000001.11', 65419, 71585, 79501, [
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 1, 'Donor', 65434, 1),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 1, 'Donor', 65435, 2),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 2, 'Acceptor', 65518, -2),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 2, 'Acceptor', 65519, -1),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 2, 'Donor', 65574, 1),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 2, 'Donor', 65575, 2),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 3, 'Acceptor', 69035, -2),
+            SpliceJunctionPosition('NC_000001.11', 'NM_001005484.2', 3, 'Acceptor', 69036, -1)
+        ]),
+        ('NC_000011.10', 5225464, 5227071, 3043, [
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 3, 'Acceptor', 5225727, -1),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 3, 'Acceptor', 5225728, -2),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 2, 'Donor', 5226575, 2),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 2, 'Donor', 5226576, 1),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 2, 'Acceptor', 5226800, -1),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 2, 'Acceptor', 5226801, -2),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 1, 'Donor', 5226928, 2),
+            SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 1, 'Donor', 5226929, 1)
+        ]),
+        ('NC_000007.14', 73680918, 73683453, 84277, [])
+
+    ])
+    def test_obtain_sj_positions(self, gtf_hander: GTFHandler, chrom: str, start: int, end: int, entrez_gene_id: int, expected: list[SpliceJunctionPosition]):
+        response = gtf_hander.obtain_sj_positions(chrom, start, end, entrez_gene_id)
+
+        assert len(response) == len(expected), f"Expected {len(expected)} splice junctions, got {len(response)}"
+        
+        for item in zip(response, expected):
+            assert item[0].chrom == item[1].chrom, f"Chromosome mismatch: {item[0].chrom} != {item[1].chrom}"
+            assert item[0].transcript == item[1].transcript, f"Transcript mismatch: {item[0].transcript} != {item[1].transcript}"
+            assert item[0].exon_no == item[1].exon_no, f"Exon number mismatch: {item[0].exon_no} != {item[1].exon_no}"
+            assert item[0].category == item[1].category, f"Category mismatch: {item[0].category} != {item[1].category}"
+            assert item[0].pos == item[1].pos, f"Position mismatch: {item[0].pos} != {item[1].pos}"

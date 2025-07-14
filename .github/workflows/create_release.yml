@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           show-progress: 'false'
+          lfs: 'true'
 
       - name: Build Docker Image
         run: docker build -t $IMAGE_NAME .
@@ -32,7 +33,10 @@ jobs:
         run: ./run_tests.sh
 
       - name: Generate GRC fixes summary
-        run: ./run.sh
+        run: ./run_grc_fixes.sh
+
+      - name: Generate splice site population frequency
+        run: ./run_splice_site_population_freq.sh
 
       - name: Create version
         id: create_version
@@ -47,5 +51,6 @@ jobs:
           tag_name: ${{ steps.create_version.outputs.tag }}
           files: |
             output/gene_alt_contigs_mapping_clinically_relevant.tsv
+            output/*_splice_site_pop_freq.tsv
           generate_release_notes: true
           token: ${{ github.token }}

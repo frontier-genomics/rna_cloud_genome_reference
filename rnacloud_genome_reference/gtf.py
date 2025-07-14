@@ -2,6 +2,7 @@ import logging
 import re
 import gzip
 from dataclasses import dataclass
+from typing_extensions import Literal
 
 import pysam
 
@@ -26,6 +27,15 @@ class Exon(Feature):
 @dataclass
 class Intron(Feature):
     intron_no: int
+
+@dataclass
+class SpliceJunctionPosition:
+    chrom: str
+    transcript: str
+    exon_no: int
+    category: Literal['Donor', 'Acceptor']
+    pos: int
+    dist_from_exon: Literal[1,2,-1, -2]
 
 def extract_protein_coding_genes(gtf_file_path: str, output_file_path: str) -> None:
     logger.info(f"Extracting protein coding genes from {gtf_file_path} to {output_file_path}")
@@ -189,3 +199,221 @@ class GTFHandler:
             introns.append(intron_entry)
 
         return introns
+
+    def obtain_transcript(self, chrom, start, end, entrez_gene_id) -> str | None:
+        logger.info(f"Fetching transcript for Entrez Gene ID: {entrez_gene_id} in primary region {chrom}:{start}-{end}")
+
+        transcript = None
+
+        transcript = self.get_transcript_for_gene(
+            chrom, 
+            start, 
+            end, 
+            entrez_gene_id,
+            True
+        )
+
+        if transcript is None:
+            logger.warning(f"No MANE transcript found for Entrez Gene ID: {entrez_gene_id} in primary region {chrom}:{start}-{end}. Attempting to fetch non-MANE transcript.")
+            transcript = self.get_transcript_for_gene(
+                chrom, 
+                start, 
+                end, 
+                entrez_gene_id,
+                False
+            )
+
+        if transcript is None:
+            logger.warning(f"Could not find any transcript for Entrez Gene ID: {entrez_gene_id} in region {chrom}:{start}-{end}.")
+            
+        return transcript
+
+    def obtain_sj_positions(self, chrom: str, start: int, end: int, entrez_gene_id: int) -> list[SpliceJunctionPosition]:
+        transcript = self.obtain_transcript(chrom, start, end, entrez_gene_id)
+        
+        splice_junction_positions = []
+        
+        if transcript is None:
+            logger.warning(f"No transcript found for Entrez Gene ID: {entrez_gene_id} in primary region {chrom}:{start}-{end}.")
+            return splice_junction_positions
+        else:
+            exons = self.get_exons_by_transcript(chromosome=chrom,
+                                                        start=start,
+                                                        end=end,
+                                                        transcript_id=transcript)
+            
+            if len(exons) == 1:
+                logger.info(f"{transcript} for Entrez Gene ID: {entrez_gene_id} contains only one exon.")
+                return splice_junction_positions
+            
+            for index, exon in enumerate(exons):
+                if exon.strand == '+':
+                    if exon.exon_no == 1:
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Donor',
+                            pos=exon.end + 1,
+                            dist_from_exon=1
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Donor',
+                            pos=exon.end + 2,
+                            dist_from_exon=2
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                    elif exon.exon_no == len(exons):
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Acceptor',
+                            pos=exon.start - 2,
+                            dist_from_exon=-2
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Acceptor',
+                            pos=exon.start - 1,
+                            dist_from_exon=-1
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                    else:
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Acceptor',
+                            pos=exon.start - 2,
+                            dist_from_exon=-2
+                        )
+
+                        splice_junction_positions.append(sj_pos)
+
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Acceptor',
+                            pos=exon.start - 1,
+                            dist_from_exon=-1
+                        )
+                        splice_junction_positions.append(sj_pos)
+ 
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Donor',
+                            pos=exon.end + 1,
+                            dist_from_exon=1
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Donor',
+                            pos=exon.end + 2,
+                            dist_from_exon=2
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                elif exon.strand == '-':
+                    if exon.exon_no == 1:
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Donor',
+                            pos=exon.start - 2,
+                            dist_from_exon=2
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Donor',
+                            pos=exon.start - 1,
+                            dist_from_exon=1
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                    elif exon.exon_no == len(exons):
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Acceptor',
+                            pos=exon.end + 1,
+                            dist_from_exon=1
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Acceptor',
+                            pos=exon.end + 2,
+                            dist_from_exon=2
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                    else:
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Donor',
+                            pos=exon.start - 2,
+                            dist_from_exon=2
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Donor',
+                            pos=exon.start - 1,
+                            dist_from_exon=1
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Acceptor',
+                            pos=exon.end + 1,
+                            dist_from_exon=1
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+                        sj_pos = SpliceJunctionPosition(
+                            chrom=exon.chromosome,
+                            transcript=transcript,
+                            exon_no=exon.exon_no,
+                            category='Acceptor',
+                            pos=exon.end + 2,
+                            dist_from_exon=2
+                        )
+                        splice_junction_positions.append(sj_pos)
+
+            return splice_junction_positions

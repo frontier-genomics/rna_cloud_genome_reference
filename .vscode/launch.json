@@ -10,6 +10,13 @@
             "request": "launch",
             "module": "rnacloud_genome_reference.grc_fixes.assess_grc_fixes",
             "args": ["-o", "output/gene_alt_contigs_mapping_clinically_relevant.tsv"]
+        },
+        {
+            "name": "Python Debugger: download_gnomad_freq",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rnacloud_genome_reference.splice_site_population_freq.download_gnomad_freq"
+            // "args": ["-o", "output/gnomad_splice_site_population_freq.tsv"]
         }
     ]
 }
