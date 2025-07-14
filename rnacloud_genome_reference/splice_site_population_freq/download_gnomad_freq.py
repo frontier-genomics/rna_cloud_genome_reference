@@ -69,11 +69,11 @@ def download_gnomad_frequency(clinically_significant_protein_coding_genes: str,
 
         try:
             total_range = stop - start + 1
-            if total_range > 50000:
-                sub_ranges = split_ranges(start, stop)
+            if total_range > 10000:
+                sub_ranges = split_ranges(start, stop, 10000)
                 logger.info(
                     f"Requested range {chrom}:{start}-{stop} (size={total_range}) "
-                    f"exceeds 50000. Splitting into {len(sub_ranges)} sub-queries."
+                    f"exceeds 10000. Splitting into {len(sub_ranges)} sub-queries."
                 )
             else:
                 sub_ranges = [(start, stop)]
