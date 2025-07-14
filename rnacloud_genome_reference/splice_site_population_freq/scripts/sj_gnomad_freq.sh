@@ -2,7 +2,7 @@
 set -e # exit on first error
 
 echo "🏃‍♂️ Obtaining splice site positions"
-python -m rnacloud_genome_reference.splice_site_population_freq.population_frequency
+python -m rnacloud_genome_reference.splice_site_population_freq.extract_sj_pos
 
 echo "🏃‍♂️ Running gnomAD frequency download and combination script"
 
