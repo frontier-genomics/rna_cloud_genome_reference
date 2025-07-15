@@ -11,7 +11,7 @@ docker run \
   --rm \
   --name rnacloud_runner \
   --entrypoint ./rnacloud_genome_reference/splice_site_population_freq/scripts/sj_gnomad_freq.sh \
-  -v $(pwd)/data:/data \
-  -v $(pwd)/temp:/temp \
-  -v $(pwd)/output:/output \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/temp:/app/temp \
+  -v $(pwd)/output:/app/output \
   rnacloud_runner
