@@ -13,4 +13,4 @@ docker run \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/temp:/app/temp \
   -v $(pwd)/output:/app/output \
-  rnacloud_runner -m rnacloud_genome_reference.grc_fixes.assess_grc_fixes -o /output/gene_alt_contigs_mapping_clinically_relevant.tsv
+  rnacloud_runner -m rnacloud_genome_reference.grc_fixes.assess_grc_fixes -o /app/output/gene_alt_contigs_mapping_clinically_relevant.tsv
