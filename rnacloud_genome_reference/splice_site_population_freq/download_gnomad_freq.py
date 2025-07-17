@@ -1,6 +1,6 @@
+import argparse
 import logging
 import os
-from typing import Optional
 
 import pandas as pd
 
@@ -20,8 +20,9 @@ OUTPUT_DIR = Config.get_str('folders', 'output_dir')
 GNOMAD_DATA_PATH = os.path.join(DATA_DIR, 'gnomad', GNOMAD_REFERENCE_GENOME, GNOMAD_VERSION)
 
 def download_gnomad_frequency(clinically_significant_protein_coding_genes: str,
-                              gnomad_data_path: str = GNOMAD_DATA_PATH) -> None:
-    logger.info("Loading clinically significant protein-coding genes...")
+                              gnomad_data_path: str,
+                              chunk_size: int) -> None:
+    logger.info("Loading clinically significant protein-coding genes. Chunk size: %d", chunk_size)
     data = pd.read_csv(clinically_significant_protein_coding_genes, sep='\t', low_memory=False)
 
     gnomad_provider = GnomadProvider(reference_genome=GNOMAD_REFERENCE_GENOME, gnomad_version=GNOMAD_VERSION)
@@ -46,7 +47,7 @@ def download_gnomad_frequency(clinically_significant_protein_coding_genes: str,
             logger.info(f"File {output_filename} already exists. Skipping.")
             continue
 
-        df = gnomad_provider.fetch_gnomad_stats_for_region(chrom, start, end, entrez_gene_id)
+        df = gnomad_provider.fetch_gnomad_stats_for_region(chrom=chrom, start=start, end=end, chunk_size=chunk_size)
         if df is None:
             continue
 
@@ -60,14 +61,22 @@ def download_gnomad_frequency(clinically_significant_protein_coding_genes: str,
             compression='gzip'
         )
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Download gnomAD frequency data.")
+    parser.add_argument('--chunk-size', type=int, default=100000, help='Chunk size for gnomAD data fetching')
+    return parser.parse_args()
+
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    args = parse_args()
+
     logger.info("Starting the gnomAD frequency download process...")
 
     logger.info("Downloading GRC annotation file...")
     download_file(ANNOTATION_URL, ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_FILE)
     sort_index_gtf_file(os.path.join(ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_FILE),
                         os.path.join(ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_SORTED_FILE))
-    
+
     logger.info("Downloading GRC genome report...")
     download_file(GENOME_REPORT_URL, GENOME_REPORT_DESTINATION_FOLDER, GENOME_REPORT_DESTINATION_FILE)
 
@@ -88,8 +97,8 @@ if __name__ == "__main__":
     logger.info("Downloading gnomAD frequency data for clinically significant protein-coding genes...")
     download_gnomad_frequency(
         clinically_significant_protein_coding_genes=os.path.join(TEMP_DIR, 'clinically_significant_protein_coding_genes.tsv'),
-        gnomad_data_path=GNOMAD_DATA_PATH
+        gnomad_data_path=GNOMAD_DATA_PATH,
+        chunk_size=args.chunk_size
     )
 
     logger.info("gnomAD frequency download process completed.")
-

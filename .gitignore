@@ -214,3 +214,5 @@ data/**/*.fasta.gz
 data/GCF_*
 data/grc_fixes
 data/gnomad/**/gnomad_frequencies_*.tsv.gz
+
+venv_*

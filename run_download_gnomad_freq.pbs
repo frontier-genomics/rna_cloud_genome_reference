@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#PBS -l ncpus=1
+#PBS -l mem=4GB
+#PBS -l jobfs=2GB
+#PBS -q copyq
+#PBS -P qe93
+#PBS -l walltime=10:00:00
+#PBS -l storage=scratch/qe93
+#PBS -l wd
+#PBS -m abe
+#PBS -o logs/download_gnomad_freq.output.log
+#PBS -e logs/download_gnomad_freq.output.log
+
+if [ -z "$PBS_O_WORKDIR" ]; then
+    export PBS_O_WORKDIR=$(pwd)
+fi
+
+module load python3/3.12.1
+module load bedtools
+module load htslib
+
+echo 🎬 Starting gnomad frequency data download
+
+. venv_rnacloud_genome_reference/bin/activate
+
+python3 -m rnacloud_genome_reference.splice_site_population_freq.download_gnomad_freq --chunk-size 100000
+
+echo 🏁 Finished download
