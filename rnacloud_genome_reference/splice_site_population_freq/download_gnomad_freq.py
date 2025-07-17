@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Optional
 
 import pandas as pd
 
@@ -18,97 +19,46 @@ OUTPUT_DIR = Config.get_str('folders', 'output_dir')
 
 GNOMAD_DATA_PATH = os.path.join(DATA_DIR, 'gnomad', GNOMAD_REFERENCE_GENOME, GNOMAD_VERSION)
 
-def split_ranges(start: int, stop: int, max_range: int = 50000) -> list[tuple[int, int]]:
-    """
-    Split a genomic range [start, stop] into subranges no larger than max_range.
-
-    Args:
-        start: The starting position (inclusive).
-        stop: The ending position (inclusive).
-        max_range: Maximum width of each subrange.
-
-    Returns:
-        A list of (sub_start, sub_stop) tuples.
-    """
-    ranges: list[tuple[int, int]] = []
-    current_start = start
-    while current_start <= stop:
-        current_stop = min(current_start + max_range - 1, stop)
-        ranges.append((current_start, current_stop))
-        current_start = current_stop + 1
-    return ranges
-
 def download_gnomad_frequency(clinically_significant_protein_coding_genes: str,
                               gnomad_data_path: str = GNOMAD_DATA_PATH) -> None:
     logger.info("Loading clinically significant protein-coding genes...")
-    data = pd.read_csv(clinically_significant_protein_coding_genes,
-                       sep='\t', low_memory=False)
+    data = pd.read_csv(clinically_significant_protein_coding_genes, sep='\t', low_memory=False)
 
-    gnomad_provider = GnomadProvider(reference_genome=GNOMAD_REFERENCE_GENOME,
-                                     gnomad_version=GNOMAD_VERSION)
-
+    gnomad_provider = GnomadProvider(reference_genome=GNOMAD_REFERENCE_GENOME, gnomad_version=GNOMAD_VERSION)
     os.makedirs(gnomad_data_path, exist_ok=True)
 
     for _, row in data.iterrows():
         chrom = row['chrom']
         start = int(row['start'])
-        stop = int(row['end'])
-        gene_id = row['entrez_gene_id']
+        end = int(row['end'])
+        entrez_gene_id = row['entrez_gene_id']
+
         output_filename = os.path.join(
             gnomad_data_path,
-            f"gnomad_frequencies_{chrom}_{gene_id}.tsv.gz"
+            f"gnomad_frequencies_{chrom}_{entrez_gene_id}.tsv.gz"
         )
 
         logger.info(
-            f"Processing chromosome: {chrom}, gene: {row['gene_name']}, entrez_gene_id: {gene_id}"
+            f"Processing chromosome: {chrom}, gene: {row['gene_name']}, entrez_gene_id: {entrez_gene_id}"
         )
 
         if os.path.exists(output_filename):
             logger.info(f"File {output_filename} already exists. Skipping.")
             continue
 
-        try:
-            total_range = stop - start + 1
-            if total_range > 10000:
-                sub_ranges = split_ranges(start, stop, 10000)
-                logger.info(
-                    f"Requested range {chrom}:{start}-{stop} (size={total_range}) "
-                    f"exceeds 10000. Splitting into {len(sub_ranges)} sub-queries."
-                )
-            else:
-                sub_ranges = [(start, stop)]
+        df = gnomad_provider.fetch_gnomad_stats_for_region(chrom, start, end, entrez_gene_id)
+        if df is None:
+            continue
 
-            all_variants: list[GnomadFrequency] = []
-            for idx, (sub_start, sub_stop) in enumerate(sub_ranges, start=1):
-                logger.info(
-                    f"Querying gnomAD ({idx}/{len(sub_ranges)}) for region "
-                    f"{chrom}:{sub_start}-{sub_stop}"
-                )
-                variants = gnomad_provider.query_gnomad(chrom, sub_start, sub_stop)
-                if variants:
-                    all_variants.extend(variants)
-                else:
-                    logger.warning(f"No gnomAD data returned for sub-range {sub_start}-{sub_stop}")
+        filtered = df.query('filters_count == 0')
+        logger.info(f"Filtered {len(df)} rows to {len(filtered)} rows with no filters.")
 
-            if not all_variants:
-                logger.warning(f"No variants found in gnomAD for {chrom}:{start}-{stop}")
-                continue
-
-            logger.info(f"Total variants found for {chrom}:{start}-{stop}: {len(all_variants)}")
-            df = pd.DataFrame(all_variants)
-
-            filtered = df.query('lof_filter.isna() and filters_count == 0')
-            filtered[['chrom', 'pos', 'alt', 'ac', 'an', 'hemizygote_count', 'homozygote_count']] \
-                .to_csv(
-                    output_filename,
-                    sep='\t',
-                    index=False,
-                    compression='gzip'
-                )
-
-        except Exception as e:
-            logger.error(f"Error querying gnomAD for {chrom}:{start}-{stop}: {e}")
-
+        filtered[['chrom', 'pos', 'ref', 'alt', 'lof_filter', 'ac', 'an', 'hemizygote_count', 'homozygote_count', 'clinvar_variation_id', 'clinical_significance', 'review_status']].to_csv(
+            output_filename,
+            sep='\t',
+            index=False,
+            compression='gzip'
+        )
 
 if __name__ == "__main__":
     logger.info("Starting the gnomAD frequency download process...")
