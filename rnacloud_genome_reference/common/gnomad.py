@@ -136,8 +136,8 @@ class GnomadProvider:
             response = requests.post(url, headers=headers, data=json.dumps(body), timeout=600)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            print(f"HTTP Request failed: {e}")
-            raise ValueError(f"HTTP Request failed for region {chrom}:{start}-{stop}") from e
+            logger.error(f"HTTP Request failed for region {chrom}:{start}-{stop} - {e}")
+            return []
         data = response.json()
         try:
             variants = data["data"]["region"]["variants"]
