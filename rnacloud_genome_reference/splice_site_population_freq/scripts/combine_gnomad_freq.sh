@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -e # exit on first error
 
 log() {
     echo "[$(date +"%Y-%m-%d %H:%M:%S")] $*"

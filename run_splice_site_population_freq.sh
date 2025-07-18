@@ -10,7 +10,7 @@ echo "Current folder: $(pwd)"
 docker run \
   --rm \
   --name rnacloud_runner \
-  --entrypoint ./rnacloud_genome_reference/splice_site_population_freq/scripts/sj_gnomad_freq.sh \
+  --entrypoint ./rnacloud_genome_reference/splice_site_population_freq/scripts/splice_site_gnomad_freq.sh \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/temp:/app/temp \
   -v $(pwd)/output:/app/output \

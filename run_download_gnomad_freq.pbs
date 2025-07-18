@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 #PBS -l ncpus=1
 #PBS -l mem=4GB
@@ -12,18 +13,19 @@
 #PBS -o logs/download_gnomad_freq.output.log
 #PBS -e logs/download_gnomad_freq.output.log
 
-if [ -z "$PBS_O_WORKDIR" ]; then
-    export PBS_O_WORKDIR=$(pwd)
+if [ -z "${PBS_O_WORKDIR:-}" ]; then
+    export PBS_O_WORKDIR="$(pwd)"
+fi
+
+# Check if duckdb is in PATH
+if ! command -v duckdb >/dev/null 2>&1; then
+    echo "Error: duckdb executable not found in \$PATH. Please load the correct module or install duckdb." >&2
+    exit 1
 fi
 
 module load python3/3.12.1
 module load bedtools
 module load htslib
-
-echo 🎬 Starting gnomad frequency data download
-
 . venv_rnacloud_genome_reference/bin/activate
 
-python3 -m rnacloud_genome_reference.splice_site_population_freq.download_gnomad_freq --chunk-size 100000
-
-echo 🏁 Finished download
+./rnacloud_genome_reference/splice_site_population_freq/scripts/download_gnomad_freq.sh
