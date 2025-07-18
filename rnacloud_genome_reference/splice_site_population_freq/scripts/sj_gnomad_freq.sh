@@ -7,9 +7,9 @@ python3 -m rnacloud_genome_reference.splice_site_population_freq.extract_sj_pos
 echo "🏃‍♂️ Running gnomAD frequency download and combination script"
 
 COMBINE_GNOMAD_FREQ_SCRIPT="rnacloud_genome_reference/splice_site_population_freq/scripts/combine_gnomad_freq.sh"
-GNOMAD_DATA_PATH=$(python -c "from rnacloud_genome_reference.splice_site_population_freq.download_gnomad_freq import GNOMAD_DATA_PATH; print(GNOMAD_DATA_PATH)")
-GNOMAD_VERSION=$(python -c "from rnacloud_genome_reference.splice_site_population_freq.download_gnomad_freq import GNOMAD_VERSION; print(GNOMAD_VERSION)")
-GNOMAD_REFERENCE_GENOME=$(python -c "from rnacloud_genome_reference.splice_site_population_freq.download_gnomad_freq import GNOMAD_REFERENCE_GENOME; print(GNOMAD_REFERENCE_GENOME)")
+GNOMAD_DATA_PATH=$(python3 -c "from rnacloud_genome_reference.splice_site_population_freq.download_gnomad_freq import GNOMAD_DATA_PATH; print(GNOMAD_DATA_PATH)")
+GNOMAD_VERSION=$(python3 -c "from rnacloud_genome_reference.splice_site_population_freq.download_gnomad_freq import GNOMAD_VERSION; print(GNOMAD_VERSION)")
+GNOMAD_REFERENCE_GENOME=$(python3 -c "from rnacloud_genome_reference.splice_site_population_freq.download_gnomad_freq import GNOMAD_REFERENCE_GENOME; print(GNOMAD_REFERENCE_GENOME)")
 GNOMAD_COMBINED_FILE="data/gnomad/${GNOMAD_REFERENCE_GENOME}/${GNOMAD_VERSION}_freq.tsv.gz"
 GNOMAD_COMBINED_DUCKDB="data/gnomad/${GNOMAD_REFERENCE_GENOME}/${GNOMAD_VERSION}_freq.duckdb"
 OUTPUT="output/${GNOMAD_VERSION}_${GNOMAD_REFERENCE_GENOME}_splice_site_pop_freq.tsv"
