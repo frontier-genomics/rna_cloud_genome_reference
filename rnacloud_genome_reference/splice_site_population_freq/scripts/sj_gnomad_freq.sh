@@ -2,7 +2,7 @@
 set -e # exit on first error
 
 echo "🏃‍♂️ Obtaining splice site positions"
-python -m rnacloud_genome_reference.splice_site_population_freq.extract_sj_pos
+python3 -m rnacloud_genome_reference.splice_site_population_freq.extract_sj_pos
 
 echo "🏃‍♂️ Running gnomAD frequency download and combination script"
 
@@ -18,7 +18,7 @@ if [ -f ${GNOMAD_COMBINED_FILE} ]; then
     echo "ℹ️ Combined gnomAD frequency file already exists. Skipping download and combination step."
 else
     echo " Downloading gnomAD frequency data"
-    python -m rnacloud_genome_reference.splice_site_population_freq.download_gnomad_freq
+    python3 -m rnacloud_genome_reference.splice_site_population_freq.download_gnomad_freq --chunk-size 100000
 
     if [ -z "$GNOMAD_DATA_PATH" ]; then
         echo "⛔️ GNOMAD_DATA_PATH is not set. Please check the download_gnomad_freq script."
@@ -49,11 +49,16 @@ FROM read_csv(
   types={
     'chrom':'VARCHAR',
     'pos':'INTEGER',
+    'ref':'VARCHAR',
     'alt':'VARCHAR',
+    'lof_filter':'VARCHAR',
     'ac':'INTEGER',
     'an':'INTEGER',
     'hemizygote_count':'INTEGER',
-    'homozygote_count':'INTEGER'
+    'homozygote_count':'INTEGER',
+    'clinvar_variation_id':'INTEGER',
+    'clinical_significance':'VARCHAR',
+    'review_status':'VARCHAR'
   },
   compression='gzip'
 );
@@ -84,13 +89,26 @@ echo "🏃‍♂️ Querying splice sites with high population frequency"
 duckdb "$GNOMAD_COMBINED_DUCKDB" <<EOF
 COPY (
     WITH splice_site_pop_freq AS
-            (SELECT sj.*,
+            (SELECT sj.chrom,
+                    sj.chrom_refseq,
+                    sj.pos,
+                    sj.entrez_gene_id,
+                    sj.gene_name,
+                    sj.transcript,
+                    sj.exon_no,
+                    sj.dist_from_annot,
+                    sj.category,
+                    gf.ref,
                     gf.alt,
+                    gf.lof_filter,
                     gf.ac,
                     gf.an,
                     gf.ac / gf.an AS af,
                     gf.hemizygote_count,
-                    gf.homozygote_count
+                    gf.homozygote_count,
+                    gf.clinvar_variation_id,
+                    gf.clinical_significance,
+                    gf.review_status
             FROM splice_junctions sj
                     JOIN gnomad_freq gf
                             ON sj.chrom = gf.chrom
