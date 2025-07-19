@@ -214,5 +214,6 @@ data/**/*.fasta.gz
 data/GCF_*
 data/grc_fixes
 data/gnomad/**/gnomad_frequencies_*.tsv.gz
+data/gnomad/**/gnomad*.duckdb
 
 venv_*

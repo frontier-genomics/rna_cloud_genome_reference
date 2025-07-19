@@ -39,7 +39,14 @@ if [ ${#files[@]} -eq 0 ]; then
     error_exit "No .tsv.gz files found in '$input_folder'."
 fi
 
-log "Combining ${#files[@]} files from '$input_folder' into '$output_file'..."
+log "Combining ${#files[@]} files from '$input_folder' into '$temp_file'..."
+
+# Append the contents of all files except their headers
+for file in "${files[@]}"; do
+    log "Processing $file..."
+    # Skip the first line (header) of every file
+    gunzip -c "$file" | tail -n +2 | gzip >> "$temp_file"
+done
 
 # Write header from the first file
 header=$(gunzip -c "${files[0]}" | head -n 1)
@@ -49,16 +56,9 @@ fi
 log "Writing header to '$output_file'..."
 echo "$header" | gzip > "$output_file"
 
-# Append the contents of all files except their headers
-for file in "${files[@]}"; do
-    log "Processing $file..."
-    # Skip the first line (header) of every file
-    gunzip -c "$file" | tail -n +2 | gzip >> "$temp_file"
-done
-
 # Sort the temp file and remove duplicates
 log "Sorting and removing duplicates..."
-gunzip -c "$temp_file" | sort -u -T "$TEMP_FOLDER" | gzip > "$output_file"
+gunzip -c "$temp_file" | sort -u -T "$TEMP_FOLDER" | gzip >> "$output_file"
 rm "$temp_file"
 
 log "Successfully combined files into '$output_file'."
