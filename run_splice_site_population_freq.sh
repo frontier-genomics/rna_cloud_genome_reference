@@ -7,10 +7,6 @@ echo "------------------------------------------------------------------"
 
 echo "Current folder: $(pwd)"
 
-echo "Clearing temp and output directories"
-rm -rf temp/*.tsv
-rm -rf output/*.tsv
-
 docker run \
   --rm \
   --name rnacloud_runner \
