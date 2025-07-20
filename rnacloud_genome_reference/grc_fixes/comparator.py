@@ -4,7 +4,7 @@ import os
 from typing import Literal
 import pysam
 from pathlib import Path
-from rnacloud_genome_reference.gtf import Feature, Exon, Intron, GTFHandler
+from rnacloud_genome_reference.gtf import Feature, Exon, Intron, GTFHandler, ObtainedTranscript
 from rnacloud_genome_reference.config import Config
 
 import logging
@@ -13,11 +13,13 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class FeatureComparisonResult:
-    primary_contig_transcript: str
+    primary_contig_transcript: str | None
+    primary_contig_transcript_is_mane_select: bool
     primary_contig_transcript_partial: bool
     primary_contig_n_exons: int
     primary_contig_n_introns: int
     fix_contig_transcript: str | None
+    fix_contig_transcript_is_mane_select: bool
     fix_contig_transcript_partial: bool | None
     fix_contig_n_exons: int
     fix_contig_n_introns: int
@@ -172,126 +174,129 @@ class FeatureComparator:
                          fix_chromosome: str, 
                          fix_start: int, 
                          fix_end: int, 
-                         entrez_gene_id: int):  
+                         entrez_gene_id: int) -> dict[str, str | int | bool | None]:
         gtf_handler = GTFHandler(self.gtf_file_path)
         logger.info(f"Comparing regions: Primary {primary_chromosome}:{primary_start}-{primary_end} with Fix {fix_chromosome}:{fix_start}-{fix_end} for Gene ID: {entrez_gene_id}")
 
-        primary_transcript = self.obtain_transcript(primary_chromosome, primary_start, primary_end, entrez_gene_id, gtf_handler)
-        primary_transcript_partial = gtf_handler.is_transcript_partial(
-            chromosome=primary_chromosome,
-            start=primary_start,
-            end=primary_end,
-            transcript_id=primary_transcript
-        )
+        primary_transcript = gtf_handler.obtain_transcript(primary_chromosome, primary_start, primary_end, entrez_gene_id)
+        
+        if primary_transcript.transcript_id is not None:
+            logger.debug(f"Primary transcript found: {primary_transcript.transcript_id}")
 
-        primary_exons = gtf_handler.get_exons_by_transcript(
-            chromosome=primary_chromosome,
-            start=primary_start,
-            end=primary_end,
-            transcript_id=primary_transcript # type: ignore
-        )
+            primary_transcript_partial = gtf_handler.is_transcript_partial(
+                chromosome=primary_chromosome,
+                start=primary_start,
+                end=primary_end,
+                transcript_id=primary_transcript.transcript_id
+            )
 
-        primary_introns = gtf_handler.derive_introns_from_exons(exons=primary_exons)
+            primary_exons = gtf_handler.get_exons_by_transcript(
+                chromosome=primary_chromosome,
+                start=primary_start,
+                end=primary_end,
+                transcript_id=primary_transcript.transcript_id
+            )
 
-        fix_exons = gtf_handler.get_exons_by_transcript(
-            chromosome=fix_chromosome,
-            start=fix_start,
-            end=fix_end,
-            transcript_id=primary_transcript # type: ignore
-        )
+            primary_introns = gtf_handler.derive_introns_from_exons(exons=primary_exons)
 
-        # If no exons are found in the fix region, we log a warning and set the fix transcript to None.
-        # This is to ensure that we do not proceed with an empty list of exons,
-        # which would lead to errors in subsequent processing.
-        # This can occur if the primary transcript does not have a corresponding fix region in the GTF file.
-        fix_transcript_partial = None
-
-        if len(fix_exons) == 0:
-            logger.warning(f"No exons found in fix region {fix_chromosome}:{fix_start}-{fix_end} for transcript {primary_transcript}.")
-            fix_transcript = None
-            fix_introns = []
-        else:
-            fix_transcript = primary_transcript
-            fix_introns = gtf_handler.derive_introns_from_exons(exons=fix_exons)
-            fix_transcript_partial = gtf_handler.is_transcript_partial(
+            fix_exons = gtf_handler.get_exons_by_transcript(
                 chromosome=fix_chromosome,
                 start=fix_start,
                 end=fix_end,
-                transcript_id=fix_transcript
+                transcript_id=primary_transcript.transcript_id
             )
 
-        n_exons_equal = len(primary_exons) == len(fix_exons)
-        n_introns_equal = len(primary_introns) == len(fix_introns)
+            # If no exons are found in the fix region, we log a warning and set the fix transcript to None.
+            # This is to ensure that we do not proceed with an empty list of exons,
+            # which would lead to errors in subsequent processing.
+            # This can occur if the primary transcript does not have a corresponding fix region in the GTF file.
+            fix_transcript_partial = None
 
-        logger.debug(f"Exons equal: {n_exons_equal}, Introns equal: {n_introns_equal}")
+            if len(fix_exons) == 0:
+                logger.warning(f"No exons found in fix region {fix_chromosome}:{fix_start}-{fix_end} for transcript {primary_transcript}.")
+                fix_transcript = ObtainedTranscript() # Empty transcript
+                fix_introns = []
+            else:
+                fix_transcript = primary_transcript
+                fix_introns = gtf_handler.derive_introns_from_exons(exons=fix_exons)
+                fix_transcript_partial = gtf_handler.is_transcript_partial(
+                    chromosome=fix_chromosome,
+                    start=fix_start,
+                    end=fix_end,
+                    transcript_id=fix_transcript.transcript_id # type: ignore
+                )
 
-        feature_sequence_helper = FeatureSequenceHelper(self.fasta_file_path)
-        primary_exons = feature_sequence_helper.get_seq_for_feature(primary_exons)
-        primary_introns = feature_sequence_helper.get_seq_for_feature(primary_introns)
+            n_exons_equal = len(primary_exons) == len(fix_exons)
+            n_introns_equal = len(primary_introns) == len(fix_introns)
 
-        fix_exons = feature_sequence_helper.get_seq_for_feature(fix_exons)
-        fix_introns = feature_sequence_helper.get_seq_for_feature(fix_introns)
+            logger.debug(f"Exons equal: {n_exons_equal}, Introns equal: {n_introns_equal}")
 
-        primary_exons_lengths = FeatureSequenceHelper.get_feature_seq_lengths(primary_exons)
-        primary_introns_lengths = FeatureSequenceHelper.get_feature_seq_lengths(primary_introns)
-        fix_exons_lengths = FeatureSequenceHelper.get_feature_seq_lengths(fix_exons)
-        fix_introns_lengths = FeatureSequenceHelper.get_feature_seq_lengths(fix_introns)
+            feature_sequence_helper = FeatureSequenceHelper(self.fasta_file_path)
+            primary_exons = feature_sequence_helper.get_seq_for_feature(primary_exons)
+            primary_introns = feature_sequence_helper.get_seq_for_feature(primary_introns)
 
-        sequences_unequal_n_exons = FeatureComparator.compare_sequences(primary_exons, fix_exons)
-        sequences_unequal_n_introns = FeatureComparator.compare_sequences(primary_introns, fix_introns)
-        splice_sites_unequal_n = FeatureComparator.compare_splice_site_motifs(primary_introns, fix_introns)
+            fix_exons = feature_sequence_helper.get_seq_for_feature(fix_exons)
+            fix_introns = feature_sequence_helper.get_seq_for_feature(fix_introns)
 
-        discordant_exon_numbering = FeatureComparator.flag_discordant_exon_numbering(primary_exons, fix_exons)
+            primary_exons_lengths = FeatureSequenceHelper.get_feature_seq_lengths(primary_exons)
+            primary_introns_lengths = FeatureSequenceHelper.get_feature_seq_lengths(primary_introns)
+            fix_exons_lengths = FeatureSequenceHelper.get_feature_seq_lengths(fix_exons)
+            fix_introns_lengths = FeatureSequenceHelper.get_feature_seq_lengths(fix_introns)
 
-        logger.debug(f"No. of exons with unequal sequences: {sequences_unequal_n_exons}")
-        logger.debug(f"No. of introns with unequal sequences: {sequences_unequal_n_introns}")
+            sequences_unequal_n_exons = FeatureComparator.compare_sequences(primary_exons, fix_exons)
+            sequences_unequal_n_introns = FeatureComparator.compare_sequences(primary_introns, fix_introns)
+            splice_sites_unequal_n = FeatureComparator.compare_splice_site_motifs(primary_introns, fix_introns)
 
-        result = FeatureComparisonResult(
-            primary_contig_transcript=primary_transcript,
-            primary_contig_transcript_partial=primary_transcript_partial,
-            primary_contig_n_exons=len(primary_exons),
-            primary_contig_n_introns=len(primary_introns),
-            fix_contig_transcript=fix_transcript,
-            fix_contig_transcript_partial=fix_transcript_partial,
-            fix_contig_n_exons=len(fix_exons),
-            fix_contig_n_introns=len(fix_introns),
-            n_exons_equal=n_exons_equal,
-            n_introns_equal=n_introns_equal,
-            sequences_unequal_n_exons=sequences_unequal_n_exons,
-            sequences_unequal_n_introns=sequences_unequal_n_introns,
-            splice_sites_unequal_n=splice_sites_unequal_n,
-            primary_exon_lengths=primary_exons_lengths,
-            primary_intron_lengths=primary_introns_lengths,
-            fix_exon_lengths=fix_exons_lengths,
-            fix_intron_lengths=fix_introns_lengths,
-            discordant_exon_numbering=discordant_exon_numbering
-        )
+            discordant_exon_numbering = FeatureComparator.flag_discordant_exon_numbering(primary_exons, fix_exons)
+
+            logger.debug(f"No. of exons with unequal sequences: {sequences_unequal_n_exons}")
+            logger.debug(f"No. of introns with unequal sequences: {sequences_unequal_n_introns}")
+
+            result = FeatureComparisonResult(
+                primary_contig_transcript=primary_transcript.transcript_id,
+                primary_contig_transcript_is_mane_select=primary_transcript.is_mane_select,
+                primary_contig_transcript_partial=primary_transcript_partial,
+                primary_contig_n_exons=len(primary_exons),
+                primary_contig_n_introns=len(primary_introns),
+                fix_contig_transcript=fix_transcript.transcript_id,
+                fix_contig_transcript_is_mane_select=fix_transcript.is_mane_select,
+                fix_contig_transcript_partial=fix_transcript_partial,
+                fix_contig_n_exons=len(fix_exons),
+                fix_contig_n_introns=len(fix_introns),
+                n_exons_equal=n_exons_equal,
+                n_introns_equal=n_introns_equal,
+                sequences_unequal_n_exons=sequences_unequal_n_exons,
+                sequences_unequal_n_introns=sequences_unequal_n_introns,
+                splice_sites_unequal_n=splice_sites_unequal_n,
+                primary_exon_lengths=primary_exons_lengths,
+                primary_intron_lengths=primary_introns_lengths,
+                fix_exon_lengths=fix_exons_lengths,
+                fix_intron_lengths=fix_introns_lengths,
+                discordant_exon_numbering=discordant_exon_numbering
+            )
+        else:
+            logger.warning(f"No primary transcript found for {primary_chromosome}:{primary_start}-{primary_end} with Gene ID: {entrez_gene_id}.")
+            result = FeatureComparisonResult(
+                primary_contig_transcript=None,
+                primary_contig_transcript_is_mane_select=False,
+                primary_contig_transcript_partial=False,
+                primary_contig_n_exons=0,
+                primary_contig_n_introns=0,
+                fix_contig_transcript=0,
+                fix_contig_transcript_is_mane_select=False,
+                fix_contig_transcript_partial=False,
+                fix_contig_n_exons=0,
+                fix_contig_n_introns=0,
+                n_exons_equal=False,
+                n_introns_equal=False,
+                sequences_unequal_n_exons=0,
+                sequences_unequal_n_introns=0,
+                splice_sites_unequal_n=0,
+                primary_exon_lengths=None,
+                primary_intron_lengths=None,
+                fix_exon_lengths=None,
+                fix_intron_lengths=None,
+                discordant_exon_numbering=None
+            )
 
         return dataclasses.asdict(result)
-
-    def obtain_transcript(self, primary_chromosome, primary_start, primary_end, entrez_gene_id, gtf_handler):
-        logger.info(f"Fetching transcript for Entrez Gene ID: {entrez_gene_id} in primary region {primary_chromosome}:{primary_start}-{primary_end}")
-
-        transcript = gtf_handler.get_transcript_for_gene(
-            primary_chromosome, 
-            primary_start, 
-            primary_end, 
-            entrez_gene_id,
-            True
-        )
-
-        if transcript is None:
-            logger.warning(f"No MANE transcript found for Entrez Gene ID: {entrez_gene_id} in primary region {primary_chromosome}:{primary_start}-{primary_end}. Attempting to fetch non-MANE transcript.")
-            transcript = gtf_handler.get_transcript_for_gene(
-                primary_chromosome, 
-                primary_start, 
-                primary_end, 
-                entrez_gene_id,
-                False
-            )
-
-        if transcript is None:
-            logger.warning(f"Could not find any transcript for Entrez Gene ID: {entrez_gene_id} in region {primary_chromosome}:{primary_start}-{primary_end}.")
-            
-        return transcript
-    

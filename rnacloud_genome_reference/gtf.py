@@ -32,10 +32,16 @@ class Intron(Feature):
 class SpliceJunctionPosition:
     chrom: str
     transcript: str
+    transcript_is_mane_select: bool
     exon_no: int
     category: Literal['Donor', 'Acceptor']
     pos: int
     dist_from_exon: Literal[1,2,-1, -2]
+
+@dataclass
+class ObtainedTranscript:
+    transcript_id: str | None = None
+    is_mane_select: bool = False
 
 def extract_protein_coding_genes(gtf_file_path: str, output_file_path: str) -> None:
     logger.info(f"Extracting protein coding genes from {gtf_file_path} to {output_file_path}")
@@ -200,10 +206,10 @@ class GTFHandler:
 
         return introns
 
-    def obtain_transcript(self, chrom, start, end, entrez_gene_id) -> str | None:
+    def obtain_transcript(self, chrom, start, end, entrez_gene_id) -> ObtainedTranscript:
         logger.info(f"Fetching transcript for Entrez Gene ID: {entrez_gene_id} in primary region {chrom}:{start}-{end}")
-
-        transcript = None
+        
+        obtained_transcript = ObtainedTranscript()
 
         transcript = self.get_transcript_for_gene(
             chrom, 
@@ -213,7 +219,11 @@ class GTFHandler:
             True
         )
 
-        if transcript is None:
+        if transcript is not None:
+            obtained_transcript.transcript_id = transcript
+            obtained_transcript.is_mane_select = True  
+        
+        elif transcript is None:
             logger.warning(f"No MANE transcript found for Entrez Gene ID: {entrez_gene_id} in primary region {chrom}:{start}-{end}. Attempting to fetch non-MANE transcript.")
             transcript = self.get_transcript_for_gene(
                 chrom, 
@@ -222,28 +232,30 @@ class GTFHandler:
                 entrez_gene_id,
                 False
             )
+            if transcript is not None:
+                obtained_transcript.transcript_id = transcript
+                obtained_transcript.is_mane_select = False
 
-        if transcript is None:
+        if obtained_transcript.transcript_id is None:
             logger.warning(f"Could not find any transcript for Entrez Gene ID: {entrez_gene_id} in region {chrom}:{start}-{end}.")
-            
-        return transcript
+
+        return obtained_transcript
 
     def obtain_sj_positions(self, chrom: str, start: int, end: int, entrez_gene_id: int) -> list[SpliceJunctionPosition]:
-        transcript = self.obtain_transcript(chrom, start, end, entrez_gene_id)
+        obtained_transcript = self.obtain_transcript(chrom, start, end, entrez_gene_id)
         
         splice_junction_positions = []
-        
-        if transcript is None:
+
+        if obtained_transcript.transcript_id is None:
             logger.warning(f"No transcript found for Entrez Gene ID: {entrez_gene_id} in primary region {chrom}:{start}-{end}.")
             return splice_junction_positions
         else:
             exons = self.get_exons_by_transcript(chromosome=chrom,
                                                         start=start,
                                                         end=end,
-                                                        transcript_id=transcript)
-            
+                                                        transcript_id=obtained_transcript.transcript_id)
             if len(exons) == 1:
-                logger.info(f"{transcript} for Entrez Gene ID: {entrez_gene_id} contains only one exon.")
+                logger.info(f"{obtained_transcript} for Entrez Gene ID: {entrez_gene_id} contains only one exon.")
                 return splice_junction_positions
             
             for index, exon in enumerate(exons):
@@ -251,7 +263,8 @@ class GTFHandler:
                     if exon.exon_no == 1:
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Donor',
                             pos=exon.end + 1,
@@ -261,7 +274,8 @@ class GTFHandler:
 
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Donor',
                             pos=exon.end + 2,
@@ -272,7 +286,8 @@ class GTFHandler:
                     elif exon.exon_no == len(exons):
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Acceptor',
                             pos=exon.start - 2,
@@ -282,7 +297,8 @@ class GTFHandler:
 
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Acceptor',
                             pos=exon.start - 1,
@@ -293,7 +309,8 @@ class GTFHandler:
                     else:
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Acceptor',
                             pos=exon.start - 2,
@@ -304,7 +321,8 @@ class GTFHandler:
 
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Acceptor',
                             pos=exon.start - 1,
@@ -314,7 +332,8 @@ class GTFHandler:
  
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Donor',
                             pos=exon.end + 1,
@@ -324,7 +343,8 @@ class GTFHandler:
 
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Donor',
                             pos=exon.end + 2,
@@ -336,7 +356,8 @@ class GTFHandler:
                     if exon.exon_no == 1:
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Donor',
                             pos=exon.start - 2,
@@ -346,7 +367,8 @@ class GTFHandler:
 
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Donor',
                             pos=exon.start - 1,
@@ -357,28 +379,31 @@ class GTFHandler:
                     elif exon.exon_no == len(exons):
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Acceptor',
                             pos=exon.end + 1,
-                            dist_from_exon=1
+                            dist_from_exon=-1
                         )
                         splice_junction_positions.append(sj_pos)
 
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Acceptor',
                             pos=exon.end + 2,
-                            dist_from_exon=2
+                            dist_from_exon=-2
                         )
                         splice_junction_positions.append(sj_pos)
 
                     else:
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Donor',
                             pos=exon.start - 2,
@@ -388,7 +413,8 @@ class GTFHandler:
 
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Donor',
                             pos=exon.start - 1,
@@ -398,21 +424,23 @@ class GTFHandler:
 
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Acceptor',
                             pos=exon.end + 1,
-                            dist_from_exon=1
+                            dist_from_exon=-1
                         )
                         splice_junction_positions.append(sj_pos)
 
                         sj_pos = SpliceJunctionPosition(
                             chrom=exon.chromosome,
-                            transcript=transcript,
+                            transcript=obtained_transcript.transcript_id,
+                            transcript_is_mane_select=obtained_transcript.is_mane_select,
                             exon_no=exon.exon_no,
                             category='Acceptor',
                             pos=exon.end + 2,
-                            dist_from_exon=2
+                            dist_from_exon=-2
                         )
                         splice_junction_positions.append(sj_pos)
 

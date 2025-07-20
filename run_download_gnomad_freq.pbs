@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+#PBS -l ncpus=1
+#PBS -l mem=4GB
+#PBS -l jobfs=2GB
+#PBS -q copyq
+#PBS -P qe93
+#PBS -l walltime=10:00:00
+#PBS -l storage=scratch/qe93
+#PBS -l wd
+#PBS -m abe
+#PBS -o logs/download_gnomad_freq.output.log
+#PBS -e logs/download_gnomad_freq.output.log
+
+if [ -z "${PBS_O_WORKDIR:-}" ]; then
+    export PBS_O_WORKDIR="$(pwd)"
+fi
+
+# Check if duckdb is in PATH
+if ! command -v duckdb >/dev/null 2>&1; then
+    echo "Error: duckdb executable not found in \$PATH. Please load the correct module or install duckdb." >&2
+    exit 1
+fi
+
+module load python3/3.12.1
+module load bedtools
+module load htslib
+. venv_rnacloud_genome_reference/bin/activate
+
+./rnacloud_genome_reference/splice_site_population_freq/scripts/download_gnomad_freq.sh
