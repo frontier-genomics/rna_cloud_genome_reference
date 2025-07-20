@@ -159,9 +159,11 @@ class TestFeatureComparator:
             (
                 FeatureComparisonResult(
                     primary_contig_transcript="tx1",
+                    primary_contig_transcript_is_mane_select=True,
                     primary_contig_n_exons=5,
                     primary_contig_n_introns=4,
                     fix_contig_transcript="tx2",
+                    fix_contig_transcript_is_mane_select=True,
                     fix_contig_n_exons=5,
                     fix_contig_n_introns=4,
                     n_exons_equal=True,
@@ -179,9 +181,11 @@ class TestFeatureComparator:
             (
                 FeatureComparisonResult(
                     primary_contig_transcript="tx1",
+                    primary_contig_transcript_is_mane_select=True,
                     primary_contig_n_exons=5,
                     primary_contig_n_introns=4,
                     fix_contig_transcript="tx2",
+                    fix_contig_transcript_is_mane_select=True,
                     fix_contig_n_exons=6,
                     fix_contig_n_introns=4,
                     n_exons_equal=False,
@@ -199,9 +203,11 @@ class TestFeatureComparator:
             (
                 FeatureComparisonResult(
                     primary_contig_transcript="tx1",
+                    primary_contig_transcript_is_mane_select=True,
                     primary_contig_n_exons=5,
                     primary_contig_n_introns=4,
                     fix_contig_transcript="tx2",
+                    fix_contig_transcript_is_mane_select=True,
                     fix_contig_n_exons=5,
                     fix_contig_n_introns=4,
                     n_exons_equal=True,
@@ -219,9 +225,11 @@ class TestFeatureComparator:
             (
                 FeatureComparisonResult(
                     primary_contig_transcript="tx1",
+                    primary_contig_transcript_is_mane_select=True,
                     primary_contig_n_exons=5,
                     primary_contig_n_introns=4,
                     fix_contig_transcript="tx2",
+                    fix_contig_transcript_is_mane_select=True,
                     fix_contig_n_exons=5,
                     fix_contig_n_introns=4,
                     n_exons_equal=True,
@@ -239,9 +247,11 @@ class TestFeatureComparator:
             (
                 FeatureComparisonResult(
                     primary_contig_transcript="tx1",
+                    primary_contig_transcript_is_mane_select=True,
                     primary_contig_n_exons=5,
                     primary_contig_n_introns=4,
                     fix_contig_transcript="tx2",
+                    fix_contig_transcript_is_mane_select=True,
                     fix_contig_n_exons=5,
                     fix_contig_n_introns=4,
                     n_exons_equal=True,
@@ -259,9 +269,11 @@ class TestFeatureComparator:
             (
                 FeatureComparisonResult(
                     primary_contig_transcript="tx1",
+                    primary_contig_transcript_is_mane_select=True,
                     primary_contig_n_exons=5,
                     primary_contig_n_introns=4,
                     fix_contig_transcript=None,
+                    fix_contig_transcript_is_mane_select=False,
                     fix_contig_n_exons=5,
                     fix_contig_n_introns=4,
                     n_exons_equal=True,
@@ -278,9 +290,11 @@ class TestFeatureComparator:
             (
                 FeatureComparisonResult(
                     primary_contig_transcript="NT_187651.1",
+                    primary_contig_transcript_is_mane_select=True,
                     primary_contig_n_exons=5,
                     primary_contig_n_introns=4,
                     fix_contig_transcript=None,
+                    fix_contig_transcript_is_mane_select=True,
                     fix_contig_n_exons=5,
                     fix_contig_n_introns=4,
                     n_exons_equal=True,
@@ -297,9 +311,11 @@ class TestFeatureComparator:
             (
                 FeatureComparisonResult(
                     primary_contig_transcript="tx1",
+                    primary_contig_transcript_is_mane_select=True,
                     primary_contig_n_exons=5,
                     primary_contig_n_introns=4,
                     fix_contig_transcript='tx1',
+                    fix_contig_transcript_is_mane_select=True,
                     fix_contig_n_exons=5,
                     fix_contig_n_introns=4,
                     n_exons_equal=True,
