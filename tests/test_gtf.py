@@ -90,7 +90,25 @@ class TestGTFHandler:
             SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 1, 'Donor', 5226928, 2),
             SpliceJunctionPosition('NC_000011.10', 'NM_000518.5', 1, 'Donor', 5226929, 1)
         ]),
-        ('NC_000007.14', 73680918, 73683453, 84277, [])
+        ('NC_000007.14', 73680918, 73683453, 84277, []),
+        ('NC_000010.11', 103389050, 103396475, 84833, [
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 5, 'Acceptor', 103389167, -1),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 5, 'Acceptor', 103389168, -2),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 4, 'Donor', 103392189, 2),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 4, 'Donor', 103392190, 1),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 4, 'Acceptor', 103392284, -1),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 4, 'Acceptor', 103392285, -2),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 3, 'Donor', 103392369, 2),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 3, 'Donor', 103392370, 1),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 3, 'Acceptor', 103392467, -1),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 3, 'Acceptor', 103392468, -2),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 2, 'Donor', 103395744, 2),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 2, 'Donor', 103395745, 1),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 2, 'Acceptor', 103396033, -1),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 2, 'Acceptor', 103396034, -2),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 1, 'Donor', 103396407, 2),
+            SpliceJunctionPosition('NC_000010.11', 'NM_001206427.2', 1, 'Donor', 103396408, 1)
+        ])
 
     ])
     def test_obtain_sj_positions(self, gtf_hander: GTFHandler, chrom: str, start: int, end: int, entrez_gene_id: int, expected: list[SpliceJunctionPosition]):

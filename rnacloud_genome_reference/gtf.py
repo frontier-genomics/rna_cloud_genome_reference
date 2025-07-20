@@ -361,7 +361,7 @@ class GTFHandler:
                             exon_no=exon.exon_no,
                             category='Acceptor',
                             pos=exon.end + 1,
-                            dist_from_exon=1
+                            dist_from_exon=-1
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -371,7 +371,7 @@ class GTFHandler:
                             exon_no=exon.exon_no,
                             category='Acceptor',
                             pos=exon.end + 2,
-                            dist_from_exon=2
+                            dist_from_exon=-2
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -402,7 +402,7 @@ class GTFHandler:
                             exon_no=exon.exon_no,
                             category='Acceptor',
                             pos=exon.end + 1,
-                            dist_from_exon=1
+                            dist_from_exon=-1
                         )
                         splice_junction_positions.append(sj_pos)
 
@@ -412,7 +412,7 @@ class GTFHandler:
                             exon_no=exon.exon_no,
                             category='Acceptor',
                             pos=exon.end + 2,
-                            dist_from_exon=2
+                            dist_from_exon=-2
                         )
                         splice_junction_positions.append(sj_pos)
 
