@@ -91,14 +91,18 @@ process COMBINE_SPLICE_FREQ {
     
     # Copy input files to expected locations
     cp ${sj_positions} ${params.folders.temp_dir}/
-    cp ${gnomad_combined} ${params.folders.data_dir}/gnomad/
     
     # Get variables from Python modules
     GNOMAD_VERSION=\$(python -c "from rnacloud_genome_reference.splice_site_population_freq.download_gnomad_freq import GNOMAD_VERSION; print(GNOMAD_VERSION)")
     GNOMAD_REFERENCE_GENOME=\$(python -c "from rnacloud_genome_reference.splice_site_population_freq.download_gnomad_freq import GNOMAD_REFERENCE_GENOME; print(GNOMAD_REFERENCE_GENOME)")
-    GNOMAD_COMBINED_FILE="${params.folders.data_dir}/gnomad/${GNOMAD_REFERENCE_GENOME}/${GNOMAD_VERSION}_freq.tsv.gz"
-    GNOMAD_COMBINED_DUCKDB="${params.folders.data_dir}/gnomad/${GNOMAD_REFERENCE_GENOME}/${GNOMAD_VERSION}_freq.duckdb"
-    OUTPUT="${GNOMAD_VERSION}_${GNOMAD_REFERENCE_GENOME}_splice_site_pop_freq.tsv"
+    
+    # Create proper directory structure and copy files
+    mkdir -p ${params.folders.data_dir}/gnomad/\${GNOMAD_REFERENCE_GENOME}
+    cp ${gnomad_combined} ${params.folders.data_dir}/gnomad/\${GNOMAD_REFERENCE_GENOME}/
+    
+    GNOMAD_COMBINED_FILE="${params.folders.data_dir}/gnomad/\${GNOMAD_REFERENCE_GENOME}/\$(basename ${gnomad_combined})"
+    GNOMAD_COMBINED_DUCKDB="${params.folders.data_dir}/gnomad/\${GNOMAD_REFERENCE_GENOME}/\${GNOMAD_VERSION}_freq.duckdb"
+    OUTPUT="\${GNOMAD_VERSION}_\${GNOMAD_REFERENCE_GENOME}_splice_site_pop_freq.tsv"
     
     # Create DuckDB database and query
     duckdb "\$GNOMAD_COMBINED_DUCKDB" <<EOF
@@ -145,7 +149,7 @@ FROM read_csv(
     'transcript_is_mane_select':'BOOLEAN',
     'exon_no':'INTEGER',
     'dist_from_annot':'INTEGER',
-    'category':'VARCHAR',
+    'category':'VARCHAR'
   }
 );
 EOF

@@ -217,3 +217,13 @@ data/gnomad/**/gnomad_frequencies_*.tsv.gz
 data/gnomad/**/gnomad*.duckdb
 
 venv_*
+
+# Nextflow work directories and outputs
+work/
+.nextflow/
+.nextflow.log*
+timeline.html
+report.html
+trace.txt
+dag.svg
+nextflow

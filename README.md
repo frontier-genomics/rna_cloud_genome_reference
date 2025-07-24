@@ -2,6 +2,21 @@
 
 ## Workflows
 
+### Implementation Options
+
+This repository provides two implementations of the genome reference processing workflow:
+
+1. **Nextflow Workflow** (Recommended): Modern workflow orchestration using [Nextflow](https://www.nextflow.io/)
+   - See [NEXTFLOW_README.md](NEXTFLOW_README.md) for detailed documentation
+   - Better reproducibility, scalability, and portability
+   - Built-in reporting and monitoring
+   - Run with: `./run_nextflow.sh` or `nextflow run main.nf`
+
+2. **Legacy Shell Scripts**: Original Docker-based shell script implementation
+   - `run_grc_fixes.sh` for GRC fixes assessment
+   - `run_splice_site_population_freq.sh` for splice site analysis
+   - `run_download_gnomad_freq.pbs` for HPC environments
+
 ### Gene Primary VS FIX contig comparison
 
 #### Logic
