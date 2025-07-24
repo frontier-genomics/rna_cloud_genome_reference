@@ -216,4 +216,9 @@ data/grc_fixes
 data/gnomad/**/gnomad_frequencies_*.tsv.gz
 data/gnomad/**/gnomad*.duckdb
 
+# Nextflow
+work
+.nextflow
+.nextflow.log
+
 venv_*
