@@ -9,6 +9,7 @@ RUN apt-get update && \
     git \
     git-lfs \
     sudo \
+    openjdk-17-jre \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -51,6 +52,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 RUN chown -R $USERNAME:$USERNAME /app
+
+# Install nextflow
+RUN curl -s https://get.nextflow.io | bash && \
+    mv nextflow /usr/local/bin/ && \
+    chmod go+rx /usr/local/bin/nextflow && \
+    nextflow -version && \
+    echo "Nextflow installed successfully"
 
 # Set the entrypoint to the main script
 ENTRYPOINT ["python"]

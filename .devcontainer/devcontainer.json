@@ -43,7 +43,9 @@
 				"ms-toolsai.jupyter",
 				"mechatroner.rainbow-csv",
 				"bierner.markdown-mermaid",
-				"SanjulaGanepola.github-local-actions"
+				"SanjulaGanepola.github-local-actions",
+				"nextflow.nextflow",
+				"yzhang.markdown-all-in-one"
 			]
 		}
 	},

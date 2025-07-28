@@ -54,3 +54,16 @@ def get_clinically_significant_protein_coding_genes(protein_coding_genes_path: s
     )
     logger.info(f"Clinically significant protein-coding genes saved to {output_path}")
 
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Get clinically significant protein-coding genes.")
+    parser.add_argument('--protein-coding-genes', type=str, required=True, help='Path to protein-coding genes file')
+    parser.add_argument('--clinically-significant-genes', type=str, required=True, help='Path to clinically significant genes file')
+    parser.add_argument('--genome-regions-report', type=str, required=True, help='Path to genome regions report file')
+    parser.add_argument('--output', type=str, required=True, help='Output path for clinically significant protein-coding genes')
+
+    args = parser.parse_args()
+    
+    logging.basicConfig(level=logging.INFO)
+    get_clinically_significant_protein_coding_genes(args.protein_coding_genes, args.clinically_significant_genes, args.genome_regions_report, args.output)

@@ -32,11 +32,8 @@ jobs:
       - name: Run tests
         run: ./run_tests.sh
 
-      - name: Generate GRC fixes summary
-        run: ./run_grc_fixes.sh
-
-      - name: Generate splice site population frequency
-        run: ./run_splice_site_population_freq.sh
+      - name: Run workflow
+        run: ./run_workflow.sh
 
       - name: Create version
         id: create_version
@@ -50,7 +47,7 @@ jobs:
         with:
           tag_name: ${{ steps.create_version.outputs.tag }}
           files: |
-            output/gene_alt_contigs_mapping_clinically_relevant.tsv
-            output/*_splice_site_pop_freq.tsv
+            output/grc_fixes_assessment.tsv
+            output/splice_site_pop_freq.tsv
           generate_release_notes: true
           token: ${{ github.token }}

@@ -213,3 +213,9 @@ temp
 output
 misc
 docs
+
+# Nextflow
+work
+.nextflow
+.nextflow.log
+.nextflow.log.*

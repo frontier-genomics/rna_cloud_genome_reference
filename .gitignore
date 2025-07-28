@@ -206,14 +206,14 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-
-data/**/*.fna.gz
-data/**/*.fasta.gz
 .DS_Store
+data
+!data/gnomad/**/gnomad_*.tsv.gz
+temp
+output
 
-data/GCF_*
-data/grc_fixes
-data/gnomad/**/gnomad_frequencies_*.tsv.gz
-data/gnomad/**/gnomad*.duckdb
-
-venv_*
+# Nextflow
+work
+.nextflow
+.nextflow.log
+.nextflow.log.*
