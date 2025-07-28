@@ -32,8 +32,5 @@ jobs:
       - name: Run tests
         run: ./run_tests.sh
 
-      - name: Generate GRC fixes summary
-        run: ./run_grc_fixes.sh
-
-      - name: Generate splice site population frequency
-        run: ./run_splice_site_population_freq.sh
+      - name: Run workflow
+        run: ./run_workflow.sh
