@@ -40,7 +40,4 @@ workflow GRC_FIXES_ASSESSMENT {
         COMPARE_FEATURES.out.comparison_results,
         clinically_relevant
     )
-
-    emit:
-    comparison_results = COMPARE_FEATURES.out.comparison_results
 }

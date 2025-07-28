@@ -1,18 +1,10 @@
 
-from dataclasses import dataclass
-from typing import Literal
 import logging
-import os
-from pathlib import Path
 
 import pandas as pd
-import numpy as np
 
-from rnacloud_genome_reference.config import Config
-from rnacloud_genome_reference.grc_fixes.common import download_file, sort_index_gtf_file
-from rnacloud_genome_reference.splice_site_population_freq.helper import get_clinically_significant_protein_coding_genes
-from rnacloud_genome_reference.grc_fixes.assess_grc_fixes import ANNOTATION_DESTINATION_FILE, ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_SORTED_FILE, ANNOTATION_URL, CLINICALLY_RELEVANT_GENES_DESTINATION_FILE, CLINICALLY_RELEVANT_GENES_DESTINATION_FOLDER, CLINICALLY_RELEVANT_GENES_URL, GENOME_REPORT_DESTINATION_FILE, GENOME_REPORT_DESTINATION_FOLDER, GENOME_REPORT_URL, PROTEIN_CODING_GENES, TEMP_DIR
-from rnacloud_genome_reference.common.gtf import Feature, Exon, Intron, GTFHandler, SpliceJunctionPosition, extract_protein_coding_genes
+from rnacloud_genome_reference.common.gtf import GTFHandler
+
 logger = logging.getLogger(__name__)
 
 def extract_sj_positions_from_clinically_significant_genes(clinical_genes_path: str, gtf_file_path: str, output_path: str) -> None:
@@ -46,34 +38,17 @@ def extract_sj_positions_from_clinically_significant_genes(clinical_genes_path: 
                     exon_no=sj_pos.exon_no,
                     category=sj_pos.category
                 ))
+    
+    logger.info("Splice junction positions extraction completed. Output saved to %s", output_path)
 
 if __name__ == "__main__":
-    logger.info("Starting process to extract clinically significant protein-coding genes and their splice junction positions")
+    import argparse
 
-    logger.info("Downloading necessary files...")
-    download_file(GENOME_REPORT_URL, GENOME_REPORT_DESTINATION_FOLDER, GENOME_REPORT_DESTINATION_FILE)
-    
-    download_file(ANNOTATION_URL, ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_FILE)
-    sort_index_gtf_file(os.path.join(ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_FILE),
-                        os.path.join(ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_SORTED_FILE))
-    
-    download_file(CLINICALLY_RELEVANT_GENES_URL, CLINICALLY_RELEVANT_GENES_DESTINATION_FOLDER, CLINICALLY_RELEVANT_GENES_DESTINATION_FILE)
-    
-    extract_protein_coding_genes(os.path.join(ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_FILE), PROTEIN_CODING_GENES)
-    
-    logger.info("Get clinically significant protein-coding genes...")
-    get_clinically_significant_protein_coding_genes(
-        protein_coding_genes_path=PROTEIN_CODING_GENES,
-        clinically_significant_genes_path=os.path.join(CLINICALLY_RELEVANT_GENES_DESTINATION_FOLDER, CLINICALLY_RELEVANT_GENES_DESTINATION_FILE),
-        genome_regions_report_path=os.path.join(GENOME_REPORT_DESTINATION_FOLDER, GENOME_REPORT_DESTINATION_FILE),
-        output_path=os.path.join(TEMP_DIR, 'clinically_significant_protein_coding_genes.tsv')
-    )
+    parser = argparse.ArgumentParser(description="Extract splice junction positions from clinically significant genes.")
+    parser.add_argument("--clinical_genes_path", required=True, help="Path to the clinically significant genes file.")
+    parser.add_argument("--gtf_file_path", required=True, help="Path to the GTF file.")
+    parser.add_argument("--output_path", required=True, help="Path to save the output file.")
 
-    logger.info("Extracting splice junction positions from clinically significant genes...")
-    extract_sj_positions_from_clinically_significant_genes(
-        clinical_genes_path=os.path.join(TEMP_DIR, 'clinically_significant_protein_coding_genes.tsv'),
-        gtf_file_path=os.path.join(ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_SORTED_FILE),
-        output_path=os.path.join(TEMP_DIR, 'clinically_significant_protein_coding_genes_sj_positions.tsv')
-    )
+    args = parser.parse_args()
 
-    logger.info("Finished processing clinically significant protein-coding genes and their splice junction positions.")
+    extract_sj_positions_from_clinically_significant_genes(args.clinical_genes_path, args.gtf_file_path, args.output_path)

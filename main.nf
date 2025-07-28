@@ -10,8 +10,10 @@ include { SIMPLIFY_AND_ANNOTATE_GRC_FIXES } from './modules/grc_fixes.nf'
 include { COMBINE_GRC_FIXES_AND_PROTEIN_CODING_GENES } from './modules/grc_fixes.nf'
 include { COMPARE_FEATURES } from './modules/grc_fixes.nf'
 include { FLAG_CLINICALLY_RELEVANT_GENES } from './modules/grc_fixes.nf'
+
 include { DOWNLOAD_GENOME_AND_REFERENCES } from './subworkflows/download_genome_and_references.nf'
 include { GRC_FIXES_ASSESSMENT } from './subworkflows/grc_fixes_assessment.nf'
+include { SPLICE_SITE_GNOMAD_FREQ } from './subworkflows/splice_site_gnomad_freq.nf'
 
 
 workflow {
@@ -35,6 +37,14 @@ workflow {
         DOWNLOAD_GENOME_AND_REFERENCES.out.assembly_report,
         EXTRACT_PROTEIN_CODING_GENES.out.protein_coding_genes,
         DOWNLOAD_GENOME_AND_REFERENCES.out.clinically_relevant
+    )
+
+    SPLICE_SITE_GNOMAD_FREQ(
+        DOWNLOAD_GENOME_AND_REFERENCES.out.gtf,
+        DOWNLOAD_GENOME_AND_REFERENCES.out.gtf_index,
+        EXTRACT_PROTEIN_CODING_GENES.out.protein_coding_genes,
+        DOWNLOAD_GENOME_AND_REFERENCES.out.clinically_relevant,
+        DOWNLOAD_GENOME_AND_REFERENCES.out.assembly_report
     )
 
     println "🏁 GRC Fixes Assessment Workflow completed successfully"
