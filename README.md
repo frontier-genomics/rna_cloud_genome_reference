@@ -66,4 +66,5 @@ https://github.com/frontier-genomics/rnacloud_genome_reference/releases
 
 # Schema
 
-[Output schema](docs/gene_primary_fix_comparison_summary.md)
+- [GRC fixes assessment](docs/grc_fixes_assessment.md)
+- [Essential splice sites gnomAD frequency](docs/splice_site_pop_freq.md)

@@ -15,4 +15,4 @@ docker run \
   -v $(pwd)/temp:/app/temp \
   -v $(pwd)/output:/app/output \
   -v $(pwd)/work:/app/work \
-  rnacloud_runner main.nf -o /app/output/grc_fixes_assessment.tsv
+  rnacloud_runner main.nf

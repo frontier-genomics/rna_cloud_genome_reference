@@ -44,7 +44,8 @@
 				"mechatroner.rainbow-csv",
 				"bierner.markdown-mermaid",
 				"SanjulaGanepola.github-local-actions",
-				"nextflow.nextflow"
+				"nextflow.nextflow",
+				"yzhang.markdown-all-in-one"
 			]
 		}
 	},
