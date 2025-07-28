@@ -10,7 +10,9 @@ echo "Current folder: $(pwd)"
 docker run \
   --rm \
   --name rnacloud_runner \
+  --entrypoint nextflow \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/temp:/app/temp \
   -v $(pwd)/output:/app/output \
-  rnacloud_runner -m rnacloud_genome_reference.grc_fixes.assess_grc_fixes -o /app/output/gene_alt_contigs_mapping_clinically_relevant.tsv
+  -v $(pwd)/work:/app/work \
+  rnacloud_runner main.nf -o /app/output/grc_fixes_assessment.tsv

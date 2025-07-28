@@ -50,7 +50,7 @@ jobs:
         with:
           tag_name: ${{ steps.create_version.outputs.tag }}
           files: |
-            output/gene_alt_contigs_mapping_clinically_relevant.tsv
+            output/grc_fixes_assessment.tsv
             output/*_splice_site_pop_freq.tsv
           generate_release_notes: true
           token: ${{ github.token }}

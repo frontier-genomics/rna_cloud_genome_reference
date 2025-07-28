@@ -1,11 +1,10 @@
 from dataclasses import dataclass, field
 import dataclasses
-import os
 from typing import Literal
+
 import pysam
-from pathlib import Path
-from rnacloud_genome_reference.gtf import Feature, Exon, Intron, GTFHandler, ObtainedTranscript
-from rnacloud_genome_reference.config import Config
+
+from rnacloud_genome_reference.common.gtf import Feature, Exon, Intron, GTFHandler, ObtainedTranscript
 
 import logging
 

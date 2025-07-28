@@ -1,6 +1,6 @@
 from typing import List
 from rnacloud_genome_reference.grc_fixes.comparator import FeatureComparisonResult, FeatureSequenceHelper, FeatureComparator
-from rnacloud_genome_reference.gtf import Exon, Feature, Intron
+from rnacloud_genome_reference.common.gtf import Exon, Feature, Intron
 import pytest
 
 def make_intron(sequence, intron_no=1):

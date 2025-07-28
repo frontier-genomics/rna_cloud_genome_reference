@@ -12,7 +12,7 @@ from rnacloud_genome_reference.config import Config
 from rnacloud_genome_reference.grc_fixes.common import download_file, sort_index_gtf_file
 from rnacloud_genome_reference.splice_site_population_freq.helper import get_clinically_significant_protein_coding_genes
 from rnacloud_genome_reference.grc_fixes.assess_grc_fixes import ANNOTATION_DESTINATION_FILE, ANNOTATION_DESTINATION_FOLDER, ANNOTATION_DESTINATION_SORTED_FILE, ANNOTATION_URL, CLINICALLY_RELEVANT_GENES_DESTINATION_FILE, CLINICALLY_RELEVANT_GENES_DESTINATION_FOLDER, CLINICALLY_RELEVANT_GENES_URL, GENOME_REPORT_DESTINATION_FILE, GENOME_REPORT_DESTINATION_FOLDER, GENOME_REPORT_URL, PROTEIN_CODING_GENES, TEMP_DIR
-from rnacloud_genome_reference.gtf import Feature, Exon, Intron, GTFHandler, SpliceJunctionPosition, extract_protein_coding_genes
+from rnacloud_genome_reference.common.gtf import Feature, Exon, Intron, GTFHandler, SpliceJunctionPosition, extract_protein_coding_genes
 logger = logging.getLogger(__name__)
 
 def extract_sj_positions_from_clinically_significant_genes(clinical_genes_path: str, gtf_file_path: str, output_path: str) -> None:
