@@ -3,7 +3,6 @@ nextflow.enable.dsl=2
 process GET_CLINICALLY_SIGNIFICANT_PROTEIN_CODING_GENES {
     tag "GET_CLINICALLY_SIGNIFICANT_PROTEIN_CODING_GENES"
     label "python"
-    publishDir "${params.temp_dir}", mode: 'copy'
 
     input:
     path protein_coding_genes_path
@@ -26,7 +25,6 @@ process GET_CLINICALLY_SIGNIFICANT_PROTEIN_CODING_GENES {
 process EXTRACT_SJ_POSITIONS_FROM_CLINICALLY_SIGNIFICANT_GENES {
     tag "EXTRACT_SJ_POSITIONS_FROM_CLINICALLY_SIGNIFICANT_GENES"
     label "python"
-    publishDir "${params.temp_dir}", mode: 'copy'
 
     input:
     path clinical_genes_path

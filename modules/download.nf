@@ -1,3 +1,5 @@
+nextflow.enable.dsl=2
+
 process DOWNLOAD_AND_INDEX_GENOME {
     tag "${genome_fasta_url.tokenize('/')[-1]}"
     storeDir "${params.data_dir}"

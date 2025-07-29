@@ -12,7 +12,8 @@ workflow GRC_FIXES_ASSESSMENT {
     gtf
     gtf_index
     fasta
-    fasta_index
+    fasta_fai_index
+    fasta_gzi_index
     assembly_report
     protein_coding_genes
     clinically_relevant
@@ -33,11 +34,15 @@ workflow GRC_FIXES_ASSESSMENT {
         fasta,
         COMBINE_GRC_FIXES_AND_PROTEIN_CODING_GENES.out.combined_grc_fixes,
         gtf_index,
-        fasta_index
+        fasta_fai_index,
+        fasta_gzi_index
     )
 
     FLAG_CLINICALLY_RELEVANT_GENES(
         COMPARE_FEATURES.out.comparison_results,
         clinically_relevant
     )
+
+    emit:
+    grc_fixes_assessment = FLAG_CLINICALLY_RELEVANT_GENES.out.grc_fixes_assessment
 }
