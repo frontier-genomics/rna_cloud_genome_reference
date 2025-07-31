@@ -67,7 +67,7 @@ process GET_TARGET_CONTIGS {
     } 
         (comparison_status=="Different - Sequences differ" && clinically_relevant_gene=="True" ) ||
         (comparison_status=="Different - Exon numbering is discordant" && clinically_relevant_gene=="True") ||
-        (comparison_status=="Not comparable" && clinically_relevant_gene=="True" && fix_contig_transcript_partial=="True") ||
+        (comparison_status=="Not comparable - Partial transcript annotation in GTF file" && clinically_relevant_gene=="True" && fix_contig_transcript_partial=="True") ||
         (comparison_status=="Different - No. of exons or introns differ" && clinically_relevant_gene=="True" ) {
             print alt_chr_ucsc
         }' ${grc_fixes_assessment} | sort -u >> target_contigs.txt
@@ -77,8 +77,8 @@ process GET_TARGET_CONTIGS {
     """
 }
 
-process SUBSET_FASTQ {
-    tag "SUBSET_FASTQ"
+process SUBSET_FASTA {
+    tag "SUBSET_FASTA"
 
     input:
     path fasta
@@ -161,6 +161,7 @@ process REDUNDANT_5S_MASK_REGIONS {
 
 process MASK_FASTA {
     tag "MASK_FASTA"
+    publishDir "${params.output_dir}", mode: 'copy'
 
     input:
     path grc_fixes_and_assembly_mask_regions_bed
@@ -177,8 +178,12 @@ process MASK_FASTA {
     script:
     """
     set -euo pipefail
+
+    echo "Combining bed files for masking..."
+    cat ${grc_fixes_and_assembly_mask_regions_bed} ${redundant_5s_regions_bed} | sort -u > combined_mask_regions.bed
+
     echo "Masking FASTA file with GRC fixes and redundant 5S regions..."
-    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed ${grc_fixes_and_assembly_mask_regions_bed} -bed ${redundant_5s_regions_bed} -fo ${fasta.simpleName}_masked.fasta
+    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed combined_mask_regions.bed -fo ${fasta.simpleName}_masked.fasta
 
     echo "Compressing the masked FASTA file..."
     bgzip ${fasta.simpleName}_masked.fasta

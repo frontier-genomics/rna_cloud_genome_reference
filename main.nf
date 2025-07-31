@@ -5,7 +5,7 @@ include { EXTRACT_PROTEIN_CODING_GENES } from './modules/grc_fixes.nf'
 include { GRC_FIXES_ASSESSMENT } from './subworkflows/grc_fixes_assessment.nf'
 include { SPLICE_SITE_GNOMAD_FREQ } from './subworkflows/splice_site_gnomad_freq.nf'
 include { BUILD_GENOME_REFERENCE } from './subworkflows/genome_build.nf'
-// include { CONVERT_ANNOTATION_REFSEQ_TO_UCSC } from './modules/annotation_build.nf'
+include { BUILD_ANNOTATION_REFERENCE } from './subworkflows/annotation_build.nf'
 
 workflow {
     DOWNLOAD_GENOME_AND_REFERENCES()
@@ -44,5 +44,11 @@ workflow {
         GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment,
         DOWNLOAD_GENOME_AND_REFERENCES.out.cen_par_mask_regions,
         DOWNLOAD_GENOME_AND_REFERENCES.out.ebv_fasta
+    )
+
+    BUILD_ANNOTATION_REFERENCE(
+        DOWNLOAD_GENOME_AND_REFERENCES.out.gtf,
+        DOWNLOAD_GENOME_AND_REFERENCES.out.assembly_report,
+        GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment
     )
 }

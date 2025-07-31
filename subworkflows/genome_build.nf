@@ -2,7 +2,7 @@ nextflow.enable.dsl=2
 
 include { CONVERT_GENOME_ANNOT_REFSEQ_TO_UCSC } from '../modules/genome_build.nf'
 include { GET_TARGET_CONTIGS } from '../modules/genome_build.nf'
-include { SUBSET_FASTQ } from '../modules/genome_build.nf'
+include { SUBSET_FASTA } from '../modules/genome_build.nf'
 include { ADD_EBV } from '../modules/genome_build.nf'
 include { REDUNDANT_5S_MASK_REGIONS } from '../modules/genome_build.nf'
 include { GRC_FIX_AND_ASSEMBLY_MASK_REGIONS } from '../modules/genome_build.nf'
@@ -35,13 +35,13 @@ workflow BUILD_GENOME_REFERENCE {
 
     def target_contigs = GET_TARGET_CONTIGS.out
 
-    SUBSET_FASTQ(
+    SUBSET_FASTA(
         CONVERT_GENOME_ANNOT_REFSEQ_TO_UCSC.out.fasta,
         target_contigs
     )
 
     ADD_EBV(
-        SUBSET_FASTQ.out.fasta,
+        SUBSET_FASTA.out.fasta,
         ebv_fasta
     )
 
