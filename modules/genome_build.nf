@@ -42,6 +42,7 @@ process CONVERT_GENOME_ANNOT_REFSEQ_TO_UCSC {
 
 process GET_TARGET_CONTIGS {
     tag "GET_TARGET_CONTIGS"
+    label "python"
 
     input:
     path assembly_report
@@ -54,26 +55,7 @@ process GET_TARGET_CONTIGS {
     """
     set -euo pipefail
 
-    # Extracting target contigs from assembly report...
-    awk -F"\t" '\$0!~/^#/ && \$2=="assembled-molecule" || \$7=="NT_187388.1" || \$7=="NT_167214.1" || \$7=="NT_187633.1" { sub(/\\r\$/, "", \$10); print \$10 }' ${assembly_report} > target_contigs.txt
-
-    # Extracting target contigs from GRC fixes assessment...
-    awk -F"\t" '
-    { 
-        alt_chr_ucsc = \$13;
-        fix_contig_transcript_partial = \$23;
-        comparison_status = \$36;
-        clinically_relevant_gene = \$37 
-    } 
-        (comparison_status=="Different - Sequences differ" && clinically_relevant_gene=="True" ) ||
-        (comparison_status=="Different - Exon numbering is discordant" && clinically_relevant_gene=="True") ||
-        (comparison_status=="Not comparable - Partial transcript annotation in GTF file" && clinically_relevant_gene=="True" && fix_contig_transcript_partial=="True") ||
-        (comparison_status=="Different - No. of exons or introns differ" && clinically_relevant_gene=="True" ) {
-            print alt_chr_ucsc
-        }' ${grc_fixes_assessment} | sort -u >> target_contigs.txt
-
-    # Final target contigs:
-    sort -u target_contigs.txt | tr '\\n' ' '
+    python -m rnacloud_genome_reference.genome_build.get_target_contigs ${assembly_report} ${grc_fixes_assessment}
     """
 }
 

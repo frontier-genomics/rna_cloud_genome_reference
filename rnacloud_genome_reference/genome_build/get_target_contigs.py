@@ -15,31 +15,30 @@ GRC_FIXES_QUERY = '''
     (comparison_status == 'Different - No. of exons or introns differ' and clinically_relevant_gene == True)
 '''
 
-ADDITIONAL_CONTIGS = [
-    "NT_187388.1",  # unlocalized rRNA
-    "NT_167214.1",  # unplaced rRNA
-    "NT_187633.1"   # GSTT1
-]
+ASSEMBLY_REPORT_QUERY = '''
+    `Sequence-Role` == 'assembled-molecule' or \
+    `RefSeq-Accn` == 'NT_187388.1' or \
+    `RefSeq-Accn` == 'NT_167214.1' or \
+    `RefSeq-Accn` == 'NT_187633.1'
+'''
 
-def get_ucsc_contigs(assembly_report: str, refseq_contigs: list[str]) -> list[str]:
+def get_assembly_report_contigs(assembly_report: str, query: str) -> list[str]:
     df = pd.read_csv(assembly_report, 
                       sep='\t',
                       comment='#',
                       low_memory=False,
                       header=None,
                       names=['Sequence-Name','Sequence-Role','Assigned-Molecule','Assigned-Molecule-Location/Type','GenBank-Accn','Relationship','RefSeq-Accn','Assembly-Unit','Sequence-Length','UCSC-style-name'])
-    df = df[df['RefSeq-Accn'].isin(refseq_contigs)]
-
+    df = df.query(query)
     if df.empty:
-        logger.warning(f"No contigs found in assembly report for {refseq_contigs}")
+        logger.warning("No contigs found in assembly report with the specified query.")
         return []
+    
+    contigs = df['UCSC-style-name'].unique().tolist()
 
-    return df['UCSC-style-name'].tolist()
+    return sorted(set(contigs))
 
 def get_grc_fixes_contigs(grc_fixes_assessment: str, query: str) -> list[str]:
-    """
-    Retrieve contigs from the GRC fixes assessment file.
-    """
     grc = pd.read_csv(grc_fixes_assessment, sep='\t', low_memory=False)
     grc_filtered = grc.query(query)
 
@@ -53,26 +52,26 @@ def get_grc_fixes_contigs(grc_fixes_assessment: str, query: str) -> list[str]:
 
 def get_target_contigs(assembly_report: str,
                        grc_fixes_assessment: str,
-                       custom_contigs: list[str],
-                       query: str):
-    contigs_set_1 = get_ucsc_contigs(assembly_report, custom_contigs)
+                       assembly_report_query: str,
+                       grc_fixes_query: str) -> None:
+    contigs_set_1 = get_assembly_report_contigs(assembly_report, assembly_report_query)
     logger.debug(f"No. of contigs contigs_set_1: {len(contigs_set_1)}")
 
-    contigs_set_2 = get_grc_fixes_contigs(grc_fixes_assessment, query)
+    contigs_set_2 = get_grc_fixes_contigs(grc_fixes_assessment, grc_fixes_query)
     logger.debug(f"No. of contigs contigs_set_2: {len(contigs_set_2)}")
 
     contigs_set_1.extend(contigs_set_2)
     logger.debug(f"No. of contigs after merging: {len(contigs_set_1)}")
 
-    print(' '.join(contigs_set_1))
+    print(' '.join(contigs_set_1), end='')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Generate contigs to be extracts from FASTA and GTF.")
     parser.add_argument("assembly_report", help="Path to the GRC assembly report.")
     parser.add_argument("grc_fixes_assessment", help="Path to the GRC fixes assessment TSV file.")
-    parser.add_argument("--custom_contigs", nargs='*', default=ADDITIONAL_CONTIGS, help="Additional contigs to include.")
-    parser.add_argument("--query", default=GRC_FIXES_QUERY, help="Query to filter GRC fixes assessment.")
+    parser.add_argument("--assembly_report_query", nargs='*', default=ASSEMBLY_REPORT_QUERY, help="Additional contigs to include.")
+    parser.add_argument("--grc_fixes_query", default=GRC_FIXES_QUERY, help="Query to filter GRC fixes assessment.")
 
     args = parser.parse_args()
 
-    get_target_contigs(args.assembly_report, args.grc_fixes_assessment, args.custom_contigs, args.query)
+    get_target_contigs(args.assembly_report, args.grc_fixes_assessment, args.assembly_report_query, args.grc_fixes_query)

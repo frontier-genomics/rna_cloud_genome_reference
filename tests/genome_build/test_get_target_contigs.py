@@ -1,6 +1,6 @@
 import pytest
 
-from rnacloud_genome_reference.genome_build.get_target_contigs import get_grc_fixes_contigs, get_ucsc_contigs
+from rnacloud_genome_reference.genome_build.get_target_contigs import get_grc_fixes_contigs, get_assembly_report_contigs
 
 @pytest.fixture
 def assembly_report() -> str:
@@ -11,21 +11,31 @@ def grc_fixes_assessment() -> str:
     return 'tests/fixtures/grc_fixes_assessment.tsv'
 
 @pytest.fixture
+def ASSEMBLY_REPORT_QUERY() -> str:
+    return '''
+        `Sequence-Role` == 'assembled-molecule' or \
+        `RefSeq-Accn` == 'NT_187388.1' or \
+        `RefSeq-Accn` == 'NT_167214.1' or \
+        `RefSeq-Accn` == 'NT_187633.1'
+    '''
+
+@pytest.fixture
 def GRC_FIXES_QUERY() -> str:
     return '''
         (comparison_status == 'Different - Sequences differ' and clinically_relevant_gene == True)
     '''
 
-@pytest.mark.parametrize("refseq_contigs, ucsc_contigs", [
-    (["NT_187388.1"], ["chr22_KI270733v1_random"]),
-    (["not existant"], [])
-])
-def test_get_ucsc_contigs(assembly_report: str, refseq_contigs: list[str], ucsc_contigs: list[str]):
-    contigs = get_ucsc_contigs(assembly_report=assembly_report,
-                               refseq_contigs=refseq_contigs)
+def test_get_assembly_report_contigs(assembly_report: str, ASSEMBLY_REPORT_QUERY: str):
+    contigs = get_assembly_report_contigs(assembly_report=assembly_report,
+                                          query=ASSEMBLY_REPORT_QUERY)
 
-    assert contigs == ucsc_contigs
+    assert isinstance(contigs, list)
+    assert len(contigs) == 28
 
+    assert "chr1" in contigs, f"Expected 'chr1', but not found"
+    assert "chr2" in contigs, f"Expected 'chr2', but not found"
+    assert "chr3" in contigs, f"Expected 'chr3', but not found"
+    assert "chr16_KQ090027v1_alt" not in contigs, f"Expected 'chr16_KQ090027v1_alt' to be excluded, but found"
 
 def test_get_grc_fixes_contigs(grc_fixes_assessment: str, GRC_FIXES_QUERY: str):
     contigs = get_grc_fixes_contigs(grc_fixes_assessment=grc_fixes_assessment,
