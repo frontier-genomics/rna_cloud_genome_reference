@@ -50,4 +50,8 @@ workflow BUILD_ANNOTATION_REFERENCE {
         CONVERT_ANNOTATION_REFSEQ_TO_UCSC.out.gtf,
         target_contigs
     )
+
+    emit:
+    gtf                   = SUBSET_GTF.out.gtf
+    gtf_index             = SUBSET_GTF.out.gtf_index
 }

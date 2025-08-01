@@ -61,4 +61,9 @@ workflow BUILD_GENOME_REFERENCE {
         ADD_EBV.out.fasta_fai_index,
         ADD_EBV.out.fasta_gzi_index
     )
+
+    emit:
+    fasta                 = MASK_FASTA.out.fasta
+    fasta_fai_index       = MASK_FASTA.out.fasta_fai_index
+    fasta_gzi_index       = MASK_FASTA.out.fasta_gzi_index
 }

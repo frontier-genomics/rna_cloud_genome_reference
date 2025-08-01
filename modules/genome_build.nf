@@ -153,9 +153,9 @@ process MASK_FASTA {
     path fasta_gzi_index
 
     output:
-    path "${fasta.simpleName}_masked.fasta.gz", emit: fasta
-    path "${fasta.simpleName}_masked.fasta.gz.fai", emit: fasta_fai_index
-    path "${fasta.simpleName}_masked.fasta.gz.gzi", emit: fasta_gzi_index
+    path "${fasta.simpleName}_reference.fasta.gz", emit: fasta
+    path "${fasta.simpleName}_reference.fasta.gz.fai", emit: fasta_fai_index
+    path "${fasta.simpleName}_reference.fasta.gz.gzi", emit: fasta_gzi_index
 
     script:
     """
@@ -165,12 +165,12 @@ process MASK_FASTA {
     cat ${grc_fixes_and_assembly_mask_regions_bed} ${redundant_5s_regions_bed} | sort -u > combined_mask_regions.bed
 
     echo "Masking FASTA file with GRC fixes and redundant 5S regions..."
-    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed combined_mask_regions.bed -fo ${fasta.simpleName}_masked.fasta
+    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed combined_mask_regions.bed -fo ${fasta.simpleName}_reference.fasta
 
     echo "Compressing the masked FASTA file..."
-    bgzip ${fasta.simpleName}_masked.fasta
+    bgzip ${fasta.simpleName}_reference.fasta
 
     echo "Indexing the masked FASTA file..."
-    samtools faidx ${fasta.simpleName}_masked.fasta.gz
+    samtools faidx ${fasta.simpleName}_reference.fasta.gz
     """
 }

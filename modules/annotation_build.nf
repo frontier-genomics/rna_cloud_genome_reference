@@ -119,8 +119,8 @@ process SUBSET_GTF {
     val target_contigs
 
     output:
-    path "${gtf.simpleName}_subset.gtf.gz", emit: gtf
-    path "${gtf.simpleName}_subset.gtf.gz.tbi", emit: gtf_index
+    path "${gtf.simpleName}_reference.gtf.gz", emit: gtf
+    path "${gtf.simpleName}_reference.gtf.gz.tbi", emit: gtf_index
 
     script:
     """
@@ -133,7 +133,7 @@ process SUBSET_GTF {
     tabix ${gtf}.gz
 
     echo "Filtering GTF for target contigs"
-    tabix ${gtf}.gz ${target_contigs} | bgzip -c > ${gtf.simpleName}_subset.gtf.gz
-    tabix ${gtf.simpleName}_subset.gtf.gz
+    tabix ${gtf}.gz ${target_contigs} | bgzip -c > ${gtf.simpleName}_reference.gtf.gz
+    tabix ${gtf.simpleName}_reference.gtf.gz
     """
 }
