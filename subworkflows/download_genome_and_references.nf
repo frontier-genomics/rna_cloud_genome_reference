@@ -17,22 +17,22 @@ include { DOWNLOAD_EBV } from '../modules/download.nf'
 workflow DOWNLOAD_GENOME_AND_REFERENCES {
     main:
     println "Downloading genome and references with the following parameters:"
-    println "Genome FASTA URL              : ${params.genome_fasta_url}"
-    println "Genome no-alt FASTA URL       : ${params.genome_no_alt_fasta_url}"
-    println "Genome annotation URL         : ${params.genome_annotation_url}"
-    println "Genome assembly report URL    : ${params.genome_assembly_report}"
-    println "CEN-PAR mask regions URL      : ${params.genome_cen_par_mask_regions}"
-    println "Reference GRC fixes URL       : ${params.reference_grc_fixes}"
-    println "Clinically relevant genes URL : ${params.reference_clinically_relevant_genes}"
+    println "Genome FASTA URL              : ${params.genome.fasta_url}"
+    println "Genome no-alt FASTA URL       : ${params.genome.no_alt_fasta_url}"
+    println "Genome annotation URL         : ${params.genome.annotation_url}"
+    println "Genome assembly report URL    : ${params.genome.assembly_report}"
+    println "CEN-PAR mask regions URL      : ${params.genome.cen_par_mask_regions}"
+    println "Reference GRC fixes URL       : ${params.reference.grc_fixes}"
+    println "Clinically relevant genes URL : ${params.reference.clinically_relevant_genes}"
 
     // build channels from params inside the sub-workflow
-    DOWNLOAD_AND_INDEX_GENOME(Channel.from(params.genome_fasta_url))
-    DOWNLOAD_AND_INDEX_GTF(Channel.from(params.genome_annotation_url))
-    DOWNLOAD_ASSEMBLY_REPORT(Channel.from(params.genome_assembly_report))
-    DOWNLOAD_GRC_FIXES(Channel.from(params.reference_grc_fixes))
-    DOWNLOAD_CLINICALLY_RELEVANT_GENES(Channel.from(params.reference_clinically_relevant_genes))
-    DOWNLOAD_CEN_PAR_MASK_REGIONS(Channel.from(params.genome_cen_par_mask_regions))
-    DOWNLOAD_EBV(Channel.from(params.genome_no_alt_fasta_url))
+    DOWNLOAD_AND_INDEX_GENOME(Channel.from(params.genome.fasta_url))
+    DOWNLOAD_AND_INDEX_GTF(Channel.from(params.genome.annotation_url))
+    DOWNLOAD_ASSEMBLY_REPORT(Channel.from(params.genome.assembly_report))
+    DOWNLOAD_GRC_FIXES(Channel.from(params.reference.grc_fixes))
+    DOWNLOAD_CLINICALLY_RELEVANT_GENES(Channel.from(params.reference.clinically_relevant_genes))
+    DOWNLOAD_CEN_PAR_MASK_REGIONS(Channel.from(params.genome.cen_par_mask_regions))
+    DOWNLOAD_EBV(Channel.from(params.genome.no_alt_fasta_url))
 
     emit:
     // expose the exact same seven channels as before
