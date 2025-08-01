@@ -1,13 +1,14 @@
+import argparse
 from dataclasses import dataclass
 import logging
 
 import pandas as pd
 
 from rnacloud_genome_reference.common.gtf import GTFHandler
-from rnacloud_genome_reference.common.utils import ChromosomeConverter
+from rnacloud_genome_reference.genome_build.get_target_contigs import GRC_FIXES_QUERY
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class Region:
@@ -56,19 +57,15 @@ def range_diff(start1: int, end1: int, start2: int, end2: int) -> list[tuple[int
     return diffs
 
 def get_grc_mask_regions(grc_fixes_assessment: str,
-                         gtf: str) -> list[Region]:
+                         gtf: str,
+                         query: str) -> list[Region]:
     mask_regions = []
 
     logger.info(f'Loading GRC fixes assessment from {grc_fixes_assessment}')
     grc = pd.read_csv(grc_fixes_assessment, sep='\t', low_memory=False)
 
     logger.info('Filtering GRC fixes assessment for clinically relevant genes with specific comparison statuses')
-    grc_filtered = grc.query('''
-        (comparison_status == 'Different - Sequences differ' and clinically_relevant_gene == True) or \
-        (comparison_status == 'Different - Exon numbering is discordant' and clinically_relevant_gene == True) or \
-        (comparison_status == 'Not comparable - Partial transcript annotation in GTF file' and clinically_relevant_gene == True and fix_contig_transcript_partial == False) or \
-        (comparison_status == 'Different - No. of exons or introns differ' and clinically_relevant_gene == True)
-    ''')
+    grc_filtered = grc.query(query)
     logger.info(f'Found {len(grc)} clinically relevant genes with discrepancies')
 
     logger.info(f"Retrieving primary contig regions that are to be masked")
@@ -146,8 +143,6 @@ def write_bed_file(*region_lists: list[Region], output_file: str):
                 bed_file.write(f"{region.chrom}\t{adjusted_start}\t{region.end}\t{region.name}\t{region.score}\t{region.strand}\n")
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(description="Generate GRC mask regions from GRC fixes assessment and GTF file.")
     parser.add_argument("grc_fixes_assessment", help="Path to the GRC fixes assessment TSV file.")
     parser.add_argument("gtf", help="Path to the GTF file.")
@@ -156,7 +151,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    grc_fix_mask_regions = get_grc_mask_regions(args.grc_fixes_assessment, args.gtf)
+    grc_fix_mask_regions = get_grc_mask_regions(args.grc_fixes_assessment, args.gtf, GRC_FIXES_QUERY)
     cen_par_mask_regions = get_cen_par_regions(args.cen_par_regions)
 
     write_bed_file(grc_fix_mask_regions, cen_par_mask_regions, output_file=args.output_file)
