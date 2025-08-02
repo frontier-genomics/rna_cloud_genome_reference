@@ -35,6 +35,27 @@ jobs:
       - name: Run workflow
         run: ./run_workflow.sh
 
+      - name: Upload DAG
+        uses: actions/upload-artifact@v4
+        with:
+          name: DAG.mmd
+          path: output/dag.mmd
+          retention-days: 7
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: report.html
+          path: output/report.html
+          retention-days: 7
+
+      - name: Upload timeline
+        uses: actions/upload-artifact@v4
+        with:
+          name: timeline.html
+          path: output/timeline.html
+          retention-days: 7
+
       - name: Create version
         id: create_version
         uses: anothrNick/github-tag-action@1.73.0
