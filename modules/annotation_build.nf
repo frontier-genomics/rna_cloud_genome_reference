@@ -102,8 +102,8 @@ process CONVERT_ANNOTATION_REFSEQ_TO_UCSC {
         if (\$0 ~ /^#/) next
         refseq = \$7
         ucsc   = \$NF
-        sub(/\r$/, "", refseq)
-        sub(/\r$/, "", ucsc)
+        sub(/\\r\$/, "", refseq)
+        sub(/\\r\$/, "", ucsc)
         map[refseq] = ucsc
         next
     }
