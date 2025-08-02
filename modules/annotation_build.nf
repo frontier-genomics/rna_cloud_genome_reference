@@ -95,18 +95,24 @@ process CONVERT_ANNOTATION_REFSEQ_TO_UCSC {
     """
     set -euo pipefail
 
-    echo "Obtaining UCSC name substitutions from assembly report"
-    awk -F '\t' '
-    !/^#/ {
+    awk '
+    BEGIN { FS=OFS="\t" }
+    NR==FNR {
+        # in the assembly report, skip headers
+        if (\$0 ~ /^#/) next
         refseq = \$7
         ucsc   = \$NF
-        sub(/\\r\$/, "", refseq)
-        sub(/\\r\$/, "", ucsc)
-        printf "s/^%s/%s/\\n", refseq, ucsc
-    }' ${assembly_report} > chrom_subst.sed
-
-    echo "Substituting RefSeq names with UCSC names in GTF file"
-    sed -f chrom_subst.sed ${gtf} > ${gtf.simpleName}_ucsc.gtf
+        sub(/\r$/, "", refseq)
+        sub(/\r$/, "", ucsc)
+        map[refseq] = ucsc
+        next
+    }
+    {
+        # now in the GTF: if the seqname is in our map, swap it
+        if (\$1 in map) \$1 = map[\$1]
+        print
+    }
+    ' ${assembly_report} ${gtf} > ${gtf.simpleName}_ucsc.gtf
     """
 }
 
