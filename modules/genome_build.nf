@@ -151,11 +151,12 @@ process MASK_FASTA {
     path fasta
     path fasta_fai_index
     path fasta_gzi_index
+    val final_output_prefix  // Prefix for output files
 
     output:
-    path "${fasta.simpleName}_reference.fasta.gz", emit: fasta
-    path "${fasta.simpleName}_reference.fasta.gz.fai", emit: fasta_fai_index
-    path "${fasta.simpleName}_reference.fasta.gz.gzi", emit: fasta_gzi_index
+    path "${final_output_prefix}_rna_cloud.fasta.gz", emit: fasta
+    path "${final_output_prefix}_rna_cloud.fasta.gz.fai", emit: fasta_fai_index
+    path "${final_output_prefix}_rna_cloud.fasta.gz.gzi", emit: fasta_gzi_index
 
     script:
     """
@@ -165,12 +166,12 @@ process MASK_FASTA {
     cat ${grc_fixes_and_assembly_mask_regions_bed} ${redundant_5s_regions_bed} | sort -u > combined_mask_regions.bed
 
     echo "Masking FASTA file with GRC fixes and redundant 5S regions..."
-    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed combined_mask_regions.bed -fo ${fasta.simpleName}_reference.fasta
+    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed combined_mask_regions.bed -fo ${final_output_prefix}_rna_cloud.fasta
 
     echo "Compressing the masked FASTA file..."
-    bgzip ${fasta.simpleName}_reference.fasta
+    bgzip ${final_output_prefix}_rna_cloud.fasta
 
     echo "Indexing the masked FASTA file..."
-    samtools faidx ${fasta.simpleName}_reference.fasta.gz
+    samtools faidx ${final_output_prefix}_rna_cloud.fasta.gz
     """
 }

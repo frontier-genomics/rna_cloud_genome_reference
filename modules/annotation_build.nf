@@ -123,10 +123,11 @@ process SUBSET_GTF {
     input:
     path gtf
     val target_contigs
+    val final_output_prefix
 
     output:
-    path "${gtf.simpleName}_reference.gtf.gz", emit: gtf
-    path "${gtf.simpleName}_reference.gtf.gz.tbi", emit: gtf_index
+    path "${final_output_prefix}_rna_cloud.gtf.gz", emit: gtf
+    path "${final_output_prefix}_rna_cloud.gtf.gz.tbi", emit: gtf_index
 
     script:
     """
@@ -139,7 +140,7 @@ process SUBSET_GTF {
     tabix ${gtf}.gz
 
     echo "Filtering GTF for target contigs"
-    tabix ${gtf}.gz ${target_contigs} | bgzip -c > ${gtf.simpleName}_reference.gtf.gz
-    tabix ${gtf.simpleName}_reference.gtf.gz
+    tabix ${gtf}.gz ${target_contigs} | bgzip -c > ${final_output_prefix}_rna_cloud.gtf.gz
+    tabix ${final_output_prefix}_rna_cloud.gtf.gz
     """
 }

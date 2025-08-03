@@ -54,12 +54,17 @@ workflow BUILD_GENOME_REFERENCE {
         cen_par_mask_regions
     )
 
+    // Obtain the final output prefix from the FASTA filename
+    def fasta_filename_from_url = "${params.genome.fasta_url.tokenize('/')[-1]}"
+    def (full, final_output_prefix, suffix) = (fasta_filename_from_url =~ /(G.+p\d+)(_.+)/)[0]
+
     MASK_FASTA(
         GRC_FIX_AND_ASSEMBLY_MASK_REGIONS.out.bed,
         REDUNDANT_5S_MASK_REGIONS.out.bed,
         ADD_EBV.out.fasta,
         ADD_EBV.out.fasta_fai_index,
-        ADD_EBV.out.fasta_gzi_index
+        ADD_EBV.out.fasta_gzi_index,
+        final_output_prefix // Prefix for output files
     )
 
     emit:
