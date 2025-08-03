@@ -6,6 +6,7 @@ include { GRC_FIXES_ASSESSMENT } from './subworkflows/grc_fixes_assessment.nf'
 include { SPLICE_SITE_GNOMAD_FREQ } from './subworkflows/splice_site_gnomad_freq.nf'
 include { BUILD_GENOME_REFERENCE } from './subworkflows/genome_build.nf'
 include { BUILD_ANNOTATION_REFERENCE } from './subworkflows/annotation_build.nf'
+include { CALCULATE_MD5_SUMMARY } from './modules/common.nf'
 
 workflow {
     DOWNLOAD_GENOME_AND_REFERENCES()
@@ -51,4 +52,15 @@ workflow {
         DOWNLOAD_GENOME_AND_REFERENCES.out.assembly_report,
         GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment
     )
+
+    def final_outputs = GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment.merge(
+        SPLICE_SITE_GNOMAD_FREQ.out.splice_site_pop_freq
+        , BUILD_GENOME_REFERENCE.out.fasta
+        , BUILD_GENOME_REFERENCE.out.fasta_fai_index
+        , BUILD_GENOME_REFERENCE.out.fasta_gzi_index
+        , BUILD_ANNOTATION_REFERENCE.out.gtf
+        , BUILD_ANNOTATION_REFERENCE.out.gtf_index
+    )
+
+    CALCULATE_MD5_SUMMARY(final_outputs)
 }
