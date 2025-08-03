@@ -30,7 +30,7 @@ flowchart TB
     v11(["DOWNLOAD_CEN_PAR_MASK_REGIONS"])
     v13(["DOWNLOAD_EBV"])
     end
-    v14(["EXTRACT_PROTEIN_CODING_GENES"])
+    v11(["EXTRACT_GENES"])
     subgraph "GRC_FIXES_ASSESSMENT [GRC_FIXES_ASSESSMENT]"
     v15(["SIMPLIFY_AND_ANNOTATE_GRC_FIXES"])
     v16(["COMBINE_GRC_FIXES_AND_PROTEIN_CODING_GENES"])
@@ -88,7 +88,9 @@ flowchart TB
     v8 --> v9
     v9 --> v18
     v9 --> v19
-    v10 --> v11
+    v10 --> 
+    
+    
     v11 --> v33
     v12 --> v13
     v13 --> v31

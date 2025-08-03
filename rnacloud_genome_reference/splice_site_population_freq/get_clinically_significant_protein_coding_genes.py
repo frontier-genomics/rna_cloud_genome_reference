@@ -6,19 +6,22 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-def get_clinically_significant_protein_coding_genes(protein_coding_genes_path: str,
+def get_clinically_significant_protein_coding_genes(genes_path: str,
                                                     clinically_significant_genes_path: str,
                                                     genome_regions_report_path: str,
                                                     output_path: str) -> None:
-    logger.info("Loading protein-coding genes and clinically significant genes...")
-    protein_coding_genes = pd.read_csv(protein_coding_genes_path, sep="\t", low_memory=False)
-    logger.info(f"Loaded {len(protein_coding_genes)} protein-coding genes.")
-    
+    logger.info("Loading genes...")
+    genes = pd.read_csv(genes_path, sep="\t", low_memory=False)
+    logger.info(f"Loaded {len(genes)} genes.")
+
+    protein_coding_genes = genes.query('gene_biotype == "protein_coding"').copy()
+    logger.info(f"Filtered down to {len(protein_coding_genes)} protein-coding genes.")
+
     logger.info("Loading clinically significant genes...")
     clinical_genes = pd.read_csv(clinically_significant_genes_path, sep="\t", low_memory=False)
     logger.info(f"Loaded {len(clinical_genes)} clinically significant genes.")
 
-    logger.info("Flagging which protein-coding genes are clinically significant...")
+    logger.info("Flagging which protein-coding are clinically significant...")
     protein_coding_genes['clinically_relevant'] = np.where(
         protein_coding_genes['entrez_gene_id'].isin(clinical_genes.loc[clinical_genes.locus_group == "protein-coding gene", 'entrez_id']),
         True,
@@ -58,7 +61,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Get clinically significant protein-coding genes.")
-    parser.add_argument('--protein-coding-genes', type=str, required=True, help='Path to protein-coding genes file')
+    parser.add_argument('--genes', type=str, required=True, help='Path to genes file')
     parser.add_argument('--clinically-significant-genes', type=str, required=True, help='Path to clinically significant genes file')
     parser.add_argument('--genome-regions-report', type=str, required=True, help='Path to genome regions report file')
     parser.add_argument('--output', type=str, required=True, help='Output path for clinically significant protein-coding genes')
@@ -66,4 +69,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     logging.basicConfig(level=logging.INFO)
-    get_clinically_significant_protein_coding_genes(args.protein_coding_genes, args.clinically_significant_genes, args.genome_regions_report, args.output)
+    get_clinically_significant_protein_coding_genes(args.genes, args.clinically_significant_genes, args.genome_regions_report, args.output)

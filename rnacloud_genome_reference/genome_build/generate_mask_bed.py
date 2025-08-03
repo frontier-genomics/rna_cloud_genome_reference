@@ -74,7 +74,7 @@ def get_grc_mask_regions(grc_fixes_assessment: str,
             chrom=row['chr_ucsc'],
             start=row['start'],
             end=row['end'],
-            name=row['gene_name'],
+            name=f"{row['gene_name']}-PRIMARY",
             strand=row['strand']
         )
         mask_regions.append(region)
@@ -87,7 +87,7 @@ def get_grc_mask_regions(grc_fixes_assessment: str,
         entrez_gene_id = row['entrez_gene_id']
         start = row['alt_scaf_start']
         end = row['alt_scaf_stop']
-        gene_name = row['gene_name']
+        gene_name = f"{row['gene_name']}-FIX"
 
         fixed_gene = gtf_handler.get_gene_by_entrez_id(fix_contig_refseq, entrez_gene_id)
 
@@ -129,7 +129,7 @@ def get_cen_par_regions(cen_par_regions: str) -> list[Region]:
             chrom=row['masked_copy_chr_name'],
             start=row['masked_copy_start'],
             end=row['masked_copy_stop'],
-            name=row['masked_scaf_accn']
+            name=f"{row['masked_scaf_accn']}-CEN_PAR"
         )
         regions.append(region)
 

@@ -104,26 +104,31 @@ class GTFHandler:
         
         exons = []
 
-        for record in self.tbx.fetch(chromosome, start, end, parser=pysam.asGTF()):
-            if record['feature'] == 'exon' and re.match(f'.*\"GenBank:{transcript_id}\";.*', record['attributes']):
-                match = re.search(r'exon_number \"(\d+)\"', record['attributes'])
-                
-                if match:
-                    exon_no = int(match.group(1))
-                else:
-                    logger.error("No exon_no found for {record}. Please check")
-                    raise
+        try:
+            for record in self.tbx.fetch(chromosome, start, end, parser=pysam.asGTF()):
+                if record['feature'] == 'exon' and re.match(f'.*\"GenBank:{transcript_id}\";.*', record['attributes']):
+                    match = re.search(r'exon_number \"(\d+)\"', record['attributes'])
+                    
+                    if match:
+                        exon_no = int(match.group(1))
+                    else:
+                        logger.error("No exon_no found for {record}. Please check")
+                        raise
 
-                exons.append(Exon(chromosome=record['contig'],
-                                  # Adding 1 to start is necessary because pysam is "pythonic" i.e. treates everything as 0 based (https://pysam.readthedocs.io/en/latest/faq.html#pysam-coordinates-are-wrong)
-                                  start=int(record['start'] + 1),
-                                  end=int(record['end']),
-                                  strand=record['strand'],
-                                  exon_no=exon_no,
-                                  sequence=None))
-        
-        logger.debug(f"Obtained Exons: {exons}")
-        return exons
+                    exons.append(Exon(chromosome=record['contig'],
+                                    # Adding 1 to start is necessary because pysam is "pythonic" i.e. treates everything as 0 based (https://pysam.readthedocs.io/en/latest/faq.html#pysam-coordinates-are-wrong)
+                                    start=int(record['start'] + 1),
+                                    end=int(record['end']),
+                                    strand=record['strand'],
+                                    exon_no=exon_no,
+                                    sequence=None))
+            
+            logger.debug(f"Obtained Exons: {exons}")
+        except ValueError as e:
+            logger.warning(f"Contig {chromosome} not found while fetching exons for region {chromosome}:{start}-{end} and transcript {transcript_id}: {e}")
+            return exons
+        finally:
+            return exons
     
     def get_exons_by_gene(self, chromosome: str, start: int, end: int, entrez_gene_id: int) -> list[Exon]:
         logger.info(f"Obtaining exons for Entrez Gene ID: {entrez_gene_id} at location {chromosome}:{start}-{end}")

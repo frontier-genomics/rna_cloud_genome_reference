@@ -8,13 +8,13 @@ workflow SPLICE_SITE_GNOMAD_FREQ {
     take:
     gtf
     gtf_index
-    protein_coding_genes_path
+    genes_path
     clinically_significant_genes_path
     genome_regions_report_path
 
     main:
     GET_CLINICALLY_SIGNIFICANT_PROTEIN_CODING_GENES(
-        protein_coding_genes_path,
+        genes_path,
         clinically_significant_genes_path,
         genome_regions_report_path
     )
