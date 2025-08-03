@@ -76,5 +76,6 @@ jobs:
             output/*.fasta.gz*
             output/*.gtf.gz*
             output/md5checksums.txt
+            output/*.bed
           generate_release_notes: true
           token: ${{ github.token }}

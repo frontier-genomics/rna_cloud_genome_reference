@@ -134,10 +134,44 @@ process REDUNDANT_5S_MASK_REGIONS {
     """
     set -euo pipefail
     echo "Extracting redundant 5S regions from GTF file..."
-    gunzip -c ${gtf} | awk -F"\\t" '\$1=="NC_000001.11" && \$9~/gene_id "RNA5S([2-9]|1[0-7])"/ && \$3=="gene"' > redundant_5s_regions.gtf
+    gunzip -c ${gtf} | awk -F"\t" '
+    {
+        chrom = \$1;                        # Chromosome name
+        feature = \$3;                      # Feature type (e.g., gene, exon)
+        attributes = \$9;                   # Attributes column
+    }
+    chrom == "NC_000001.11" && attributes ~ /gene_id "RNA5S([2-9]|1[0-7])"/ && feature == "gene"
+    ' > redundant_5s_regions.gtf
     
     echo "Converting redundant 5S regions to BED format..."
-    cat redundant_5s_regions.gtf | awk -F"\\t" 'OFS="\\t" { print "chr1", \$4-1, \$5, ".", 0, "." }' > redundant_5s_regions.bed
+    awk -F"\t" '
+    {
+        # Assign meaningful names to columns
+        chrom = "chr1";                 # NOTE: This is hardcoded for chromosome 1 since the GTF extracted is for chromosome 1 only
+        start = \$4 - 1;                # BED is 0-based, GTF is 1-based
+        end = \$5;
+        score = 0;
+        strand = ".";
+
+        # Extract gene_id from attributes (column 9)
+        attributes = \$9;
+        name = ".";
+        n = split(attributes, attribute_array, ";");
+        for (i = 1; i <= n; i++) {
+            if (attribute_array[i] ~ /gene_id/) {
+                # Remove label and quotes to get only the value
+                sub(/gene_id "/, "", attribute_array[i]);
+                sub(/"/, "", attribute_array[i]);
+                name = attribute_array[i];
+            }
+        }
+
+        # Set tab as output separator
+        OFS = "\t";
+
+        # Print in BED format: chrom, start, end, name, score, strand
+        print chrom, start, end, name"-Redundant5S", score, strand
+    }' redundant_5s_regions.gtf > redundant_5s_regions.bed
     """
 }
 
@@ -157,16 +191,17 @@ process MASK_FASTA {
     path "${final_output_prefix}_rna_cloud.fasta.gz", emit: fasta
     path "${final_output_prefix}_rna_cloud.fasta.gz.fai", emit: fasta_fai_index
     path "${final_output_prefix}_rna_cloud.fasta.gz.gzi", emit: fasta_gzi_index
+    path "mask_regions.bed", emit: mask_regions_bed
 
     script:
     """
     set -euo pipefail
 
     echo "Combining bed files for masking..."
-    cat ${grc_fixes_and_assembly_mask_regions_bed} ${redundant_5s_regions_bed} | sort -u > combined_mask_regions.bed
+    cat ${grc_fixes_and_assembly_mask_regions_bed} ${redundant_5s_regions_bed} | sort -u > mask_regions.bed
 
     echo "Masking FASTA file with GRC fixes and redundant 5S regions..."
-    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed combined_mask_regions.bed -fo ${final_output_prefix}_rna_cloud.fasta
+    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed mask_regions.bed -fo ${final_output_prefix}_rna_cloud.fasta
 
     echo "Compressing the masked FASTA file..."
     bgzip ${final_output_prefix}_rna_cloud.fasta
