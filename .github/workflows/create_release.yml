@@ -73,5 +73,8 @@ jobs:
           files: |
             output/grc_fixes_assessment.tsv
             output/splice_site_pop_freq.tsv
+            output/*.fasta.gz*
+            output/*.gtf.gz*
+            output/md5checksums.txt
           generate_release_notes: true
           token: ${{ github.token }}
