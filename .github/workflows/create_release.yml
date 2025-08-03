@@ -40,6 +40,7 @@ jobs:
         with:
           name: DAG.mmd
           path: output/dag.mmd
+          compression-level: 0
           retention-days: 7
 
       - name: Upload report
@@ -47,6 +48,7 @@ jobs:
         with:
           name: report.html
           path: output/report.html
+          compression-level: 0
           retention-days: 7
 
       - name: Upload timeline
@@ -54,6 +56,7 @@ jobs:
         with:
           name: timeline.html
           path: output/timeline.html
+          compression-level: 0
           retention-days: 7
 
       - name: Create version
