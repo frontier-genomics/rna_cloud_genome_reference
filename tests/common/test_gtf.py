@@ -122,3 +122,27 @@ class TestGTFHandler:
             assert item[0].exon_no == item[1].exon_no, f"Exon number mismatch: {item[0].exon_no} != {item[1].exon_no}"
             assert item[0].category == item[1].category, f"Category mismatch: {item[0].category} != {item[1].category}"
             assert item[0].pos == item[1].pos, f"Position mismatch: {item[0].pos} != {item[1].pos}"
+
+    @pytest.mark.parametrize("chromosome, entrez_gene_id, start, end, strand", [
+        ('NW_012132914.1', 65122, 38599, 43422, '+'),
+        ('NC_000001.11', 65122, 12857086, 12861909, '+')
+    ])
+    def test_get_gene_by_entrez_id(self, gtf_hander: GTFHandler, chromosome: str, entrez_gene_id: int, start: int, end: int, strand: str):
+        # Test for a valid Entrez Gene ID
+        gene = gtf_hander.get_gene_by_entrez_id(chromosome, entrez_gene_id)
+        
+        if gene is not None:
+            assert gene.chromosome == chromosome, f"Expected chromosome {chromosome}, got {gene.chromosome}"
+            assert gene.start == start, f"Expected start {start}, got {gene.start}"
+            assert gene.end == end, f"Expected end {end}, got {gene.end}"
+            assert gene.strand == strand, f"Expected strand {strand}, got {gene.strand}"
+
+
+    @pytest.mark.parametrize("chromosome, entrez_gene_id", [
+        ('NW_012132914.1', 365122)
+    ])
+    def test_get_invalid_gene_by_entrez_id(self, gtf_hander: GTFHandler, chromosome: str, entrez_gene_id: int):
+        # Test for a valid Entrez Gene ID
+        gene = gtf_hander.get_gene_by_entrez_id(chromosome, entrez_gene_id)
+
+        assert gene is None

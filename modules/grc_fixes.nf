@@ -3,7 +3,6 @@ nextflow.enable.dsl=2
 process EXTRACT_PROTEIN_CODING_GENES {
     tag "EXTRACT_PROTEIN_CODING_GENES"
     label "python"
-    publishDir "${params.temp_dir}", mode: 'copy'
 
     input:
     path gtf_file
@@ -21,7 +20,6 @@ process EXTRACT_PROTEIN_CODING_GENES {
 process SIMPLIFY_AND_ANNOTATE_GRC_FIXES {
     tag "SIMPLIFY_AND_ANNOTATE_GRC_FIXES"
     tag "python"
-    publishDir "${params.temp_dir}", mode: 'copy'
 
     input:
     path grc_fixes_file
@@ -40,7 +38,6 @@ process SIMPLIFY_AND_ANNOTATE_GRC_FIXES {
 process COMBINE_GRC_FIXES_AND_PROTEIN_CODING_GENES {
     tag "COMBINE_GRC_FIXES_AND_PROTEIN_CODING_GENES"
     label "python"
-    publishDir "${params.temp_dir}", mode: 'copy'
 
     input:
     path protein_coding_genes_file
@@ -59,7 +56,6 @@ process COMBINE_GRC_FIXES_AND_PROTEIN_CODING_GENES {
 process COMPARE_FEATURES {
     tag "COMPARE_FEATURES"
     label "python"
-    publishDir "${params.temp_dir}", mode: 'copy'
 
     input:
     path gtf
@@ -67,7 +63,8 @@ process COMPARE_FEATURES {
     path combined_grc_fixes_file
 
     path gtf_index
-    path fasta_index
+    path fasta_fai_index
+    path fasta_gzi_index
 
     output:
     path "comparison_results.tsv", emit: comparison_results

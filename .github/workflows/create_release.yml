@@ -35,6 +35,30 @@ jobs:
       - name: Run workflow
         run: ./run_workflow.sh
 
+      - name: Upload DAG
+        uses: actions/upload-artifact@v4
+        with:
+          name: DAG.mmd
+          path: output/dag.mmd
+          compression-level: 0
+          retention-days: 7
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: report.html
+          path: output/report.html
+          compression-level: 0
+          retention-days: 7
+
+      - name: Upload timeline
+        uses: actions/upload-artifact@v4
+        with:
+          name: timeline.html
+          path: output/timeline.html
+          compression-level: 0
+          retention-days: 7
+
       - name: Create version
         id: create_version
         uses: anothrNick/github-tag-action@1.73.0
@@ -49,5 +73,8 @@ jobs:
           files: |
             output/grc_fixes_assessment.tsv
             output/splice_site_pop_freq.tsv
+            output/*.fasta.gz*
+            output/*.gtf.gz*
+            output/md5checksums.txt
           generate_release_notes: true
           token: ${{ github.token }}

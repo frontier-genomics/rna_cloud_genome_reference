@@ -1,3 +1,39 @@
+nextflow.enable.dsl=2
+
+process DOWNLOAD_EBV {
+    tag "${genome_no_alt_fasta_url.tokenize('/')[-1]}"
+    storeDir "${params.data_dir}"
+
+    input:
+    val genome_no_alt_fasta_url
+
+    output:
+    path "chrEBV.fasta", emit: fasta
+
+    script:
+    """
+    file_gz=\$(basename ${genome_no_alt_fasta_url})
+    file_fa=\$(basename \${file_gz} .gz)
+
+    echo "Downloading genome from: ${genome_no_alt_fasta_url}"
+    wget -qc ${genome_no_alt_fasta_url}
+
+    echo "Unzipping \${file_gz}..."
+    gunzip -f \${file_gz}
+
+    echo "Compressing with bgzip..."
+    bgzip \${file_fa}
+
+    echo "Indexing with samtools..."
+    samtools faidx \${file_gz}
+        
+    samtools faidx \${file_gz} chrEBV > chrEBV.fasta
+    rm \${file_gz}
+    rm \${file_gz}.fai
+    rm \${file_gz}.gzi
+    """
+}
+
 process DOWNLOAD_AND_INDEX_GENOME {
     tag "${genome_fasta_url.tokenize('/')[-1]}"
     storeDir "${params.data_dir}"

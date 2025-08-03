@@ -32,4 +32,7 @@ workflow SPLICE_SITE_GNOMAD_FREQ {
         params.gnomad.homozygote_count,
         EXTRACT_SJ_POSITIONS_FROM_CLINICALLY_SIGNIFICANT_GENES.out.sj_positions
     )
+
+    emit:
+    splice_site_pop_freq = OET_SPLICE_SITE_GNOMAD_FREQ.out.splice_site_pop_freq
 }

@@ -45,7 +45,9 @@
 				"bierner.markdown-mermaid",
 				"SanjulaGanepola.github-local-actions",
 				"nextflow.nextflow",
-				"yzhang.markdown-all-in-one"
+				"yzhang.markdown-all-in-one",
+				"Gruntfuggly.todo-tree",
+				"njpwerner.autodocstring"
 			]
 		}
 	},

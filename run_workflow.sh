@@ -15,4 +15,7 @@ docker run \
   -v $(pwd)/temp:/app/temp \
   -v $(pwd)/output:/app/output \
   -v $(pwd)/work:/app/work \
-  rnacloud_runner main.nf
+  -v $(pwd)/reference:/app/reference \
+  rnacloud_runner main.nf -with-dag /app/output/dag.mmd \
+                          -with-report /app/output/report.html \
+                          -with-timeline /app/output/timeline.html

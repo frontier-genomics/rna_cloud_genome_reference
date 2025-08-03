@@ -219,3 +219,6 @@ work
 .nextflow
 .nextflow.log
 .nextflow.log.*
+
+# Git folders
+.git

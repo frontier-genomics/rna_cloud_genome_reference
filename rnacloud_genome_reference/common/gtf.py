@@ -43,29 +43,6 @@ class ObtainedTranscript:
     transcript_id: str | None = None
     is_mane_select: bool = False
 
-def extract_protein_coding_genes(gtf_file_path: str, output_file_path: str) -> None:
-    logger.info(f"Extracting protein coding genes from {gtf_file_path} to {output_file_path}")
-    
-    with gzip.open(gtf_file_path, 'rt') as f:
-        with open(output_file_path, 'w') as out_file:
-            # Write output file header
-            out_file.write("chr\tstart\tend\tstrand\tgene_name\tentrez_gene_id\n")
-
-            for line in f:
-                if line.startswith('#'):
-                    continue
-
-                fields = line.strip().split('\t')
-                
-                if fields[2] == 'gene' and re.match(r'.*gene_biotype \"protein_coding\".*', fields[8]):
-                    out_file.write("{chr}\t{start}\t{end}\t{strand}\t{gene_name}\t{entrez_gene_id}\n".format(chr=fields[0],
-                                                                                                      start=fields[3],
-                                                                                                      end=fields[4],
-                                                                                                      strand=fields[6],
-                                                                                                      gene_name=re.search(r'gene \"(.+?)\";', fields[8]).group(1),
-                                                                                                      entrez_gene_id=re.search(r'\"GeneID:(.+?)\";', fields[8]).group(1)))
-    logger.info(f"Protein coding genes extracted to {output_file_path}")
-
 class GTFHandler:
     def __init__(self, gtf_file_path: str):
         self.gtf_file_path = gtf_file_path
@@ -173,6 +150,22 @@ class GTFHandler:
         
         logger.debug(f"Obtained Exons: {exons}")
         return exons
+    
+    def get_gene_by_entrez_id(self, chromosome: str, entrez_gene_id: int) -> Feature | None:
+        logger.info(f"Obtaining gene name for Entrez Gene ID: {entrez_gene_id} in chromosome {chromosome}")
+
+        for record in self.tbx.fetch(reference=chromosome, parser=pysam.asGTF()):
+            if record['feature'] == 'gene' and re.match(f'.*\"GeneID:{entrez_gene_id}\";.*', record['attributes']):
+                return Feature(
+                    chromosome=record['contig'],
+                    start=int(record['start'] + 1),
+                    end=int(record['end']),
+                    strand=record['strand'],
+                    sequence=None
+                )
+
+        logger.warning(f"No gene found for Entrez Gene ID: {entrez_gene_id} in chromosome {chromosome}.")
+        return None
     
     @staticmethod
     def derive_introns_from_exons(exons: list[Exon]) -> list[Intron]:
