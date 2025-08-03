@@ -1,19 +1,19 @@
 nextflow.enable.dsl=2
 
-process EXTRACT_PROTEIN_CODING_GENES {
-    tag "EXTRACT_PROTEIN_CODING_GENES"
+process EXTRACT_GENES {
+    tag "EXTRACT_GENES"
     label "python"
 
     input:
     path gtf_file
 
     output:
-    path "protein_coding_genes.tsv", emit: protein_coding_genes
+    path "genes.tsv", emit: genes
 
     script:
     """
     set -euo pipefail
-    python3 -m rnacloud_genome_reference.grc_fixes.extract_protein_coding_genes ${gtf_file} protein_coding_genes.tsv
+    python3 -m rnacloud_genome_reference.grc_fixes.extract_genes ${gtf_file} genes.tsv
     """
 }
 
@@ -35,12 +35,12 @@ process SIMPLIFY_AND_ANNOTATE_GRC_FIXES {
     """
 }
 
-process COMBINE_GRC_FIXES_AND_PROTEIN_CODING_GENES {
-    tag "COMBINE_GRC_FIXES_AND_PROTEIN_CODING_GENES"
+process COMBINE_GRC_FIXES_AND_GENES {
+    tag "COMBINE_GRC_FIXES_AND_GENES"
     label "python"
 
     input:
-    path protein_coding_genes_file
+    path genes_file
     path simplified_grc_fixes_file
 
     output:
@@ -49,7 +49,7 @@ process COMBINE_GRC_FIXES_AND_PROTEIN_CODING_GENES {
     script:
     """
     set -euo pipefail
-    python3 -m rnacloud_genome_reference.grc_fixes.combine_grc_fixes_and_protein_coding_genes ${protein_coding_genes_file} ${simplified_grc_fixes_file} combined_grc_fixes.tsv
+    python3 -m rnacloud_genome_reference.grc_fixes.combine_grc_fixes_and_genes ${genes_file} ${simplified_grc_fixes_file} combined_grc_fixes.tsv
     """
 }
 

@@ -26,7 +26,7 @@ class TestFeatureSequenceHelper:
             Exon("NC_000001.11", 65419, 65433, '+', 'CCCAGATCTCTTCAG', 1),
         ]
 
-        region_sequence_helper = FeatureSequenceHelper("tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.NC_000001.11.NC_000021.9.NW_025791815.1.NW_025791813.1.NW_025791812.1.fna.gz")
+        region_sequence_helper = FeatureSequenceHelper("tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.subset.fna.gz")
         response = region_sequence_helper.get_seq_for_feature(input) # type: ignore
 
         assert response == expected, f"Expected {expected}, but got {response}"
@@ -55,9 +55,9 @@ class TestFeatureComparator:
         assert response == expected, f"Expected {expected}, but got {response}"
 
 
-    def test_compare_features(self):
+    def test_compare_features_1(self):
         comparator = FeatureComparator("tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.sorted.gtf.gz", 
-                                       "tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.NC_000001.11.NC_000021.9.NW_025791815.1.NW_025791813.1.NW_025791812.1.fna.gz")
+                                       "tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.subset.fna.gz")
         
         response = comparator.compare_features(
             primary_chromosome="NC_000021.9",
@@ -80,6 +80,32 @@ class TestFeatureComparator:
         assert response['sequences_unequal_n_exons'] == 1
         assert response['sequences_unequal_n_introns'] == 0
         assert response['splice_sites_unequal_n'] == 0
+
+    def test_compare_features_2(self):
+        comparator = FeatureComparator("tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.sorted.gtf.gz", 
+                                       "tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.subset.fna.gz")
+        
+        response = comparator.compare_features(
+            primary_chromosome="NC_000009.12",
+            primary_start=134178925,
+            primary_end=134206688,
+            fix_chromosome="NW_021159999.1",
+            fix_start=1,
+            fix_end=25408,
+            entrez_gene_id=124902298
+        )
+
+        assert isinstance(response, dict), "Response should be a dictionary"
+        assert response['primary_contig_transcript'] == 'XR_007061835.1'
+        assert response['primary_contig_n_exons'] == 3
+        assert response['primary_contig_n_introns'] == 2
+        assert response['fix_contig_n_exons'] == 0
+        assert response['fix_contig_n_introns'] == 0
+        assert response['n_exons_equal'] is False
+        assert response['n_introns_equal'] is False
+        assert response['sequences_unequal_n_exons'] == -1
+        assert response['sequences_unequal_n_introns'] == -1
+        assert response['splice_sites_unequal_n'] == -1
 
     
     @pytest.mark.parametrize("primary_seqs, fix_seqs, expected",

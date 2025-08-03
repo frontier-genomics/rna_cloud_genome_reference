@@ -5,7 +5,7 @@ process GET_CLINICALLY_SIGNIFICANT_PROTEIN_CODING_GENES {
     label "python"
 
     input:
-    path protein_coding_genes_path
+    path genes_path
     path clinically_significant_genes_path
     path genome_regions_report_path
 
@@ -15,7 +15,7 @@ process GET_CLINICALLY_SIGNIFICANT_PROTEIN_CODING_GENES {
     script:
     """
     python -m rnacloud_genome_reference.splice_site_population_freq.get_clinically_significant_protein_coding_genes \
-        --protein-coding-genes ${protein_coding_genes_path} \
+        --genes ${genes_path} \
         --clinically-significant-genes ${clinically_significant_genes_path} \
         --genome-regions-report ${genome_regions_report_path} \
         --output clinically_significant_protein_coding_genes.tsv

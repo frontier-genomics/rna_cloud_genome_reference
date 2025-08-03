@@ -1,1 +1,2 @@
 data/gnomad/GRCh38/gnomad_r4_freq.tsv.gz filter=lfs diff=lfs merge=lfs -text
+tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.subset.fna.gz filter=lfs diff=lfs merge=lfs -text

@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 
 include { DOWNLOAD_GENOME_AND_REFERENCES } from './subworkflows/download_genome_and_references.nf'
-include { EXTRACT_PROTEIN_CODING_GENES } from './modules/grc_fixes.nf'
+include { EXTRACT_GENES } from './modules/grc_fixes.nf'
 include { GRC_FIXES_ASSESSMENT } from './subworkflows/grc_fixes_assessment.nf'
 include { SPLICE_SITE_GNOMAD_FREQ } from './subworkflows/splice_site_gnomad_freq.nf'
 include { BUILD_GENOME_REFERENCE } from './subworkflows/genome_build.nf'
@@ -11,7 +11,7 @@ include { CALCULATE_MD5_SUMMARY } from './modules/common.nf'
 workflow {
     DOWNLOAD_GENOME_AND_REFERENCES()
 
-    EXTRACT_PROTEIN_CODING_GENES(
+    EXTRACT_GENES(
         DOWNLOAD_GENOME_AND_REFERENCES.out.gtf
     )
 
@@ -23,14 +23,14 @@ workflow {
         DOWNLOAD_GENOME_AND_REFERENCES.out.fasta_fai_index,
         DOWNLOAD_GENOME_AND_REFERENCES.out.fasta_gzi_index,
         DOWNLOAD_GENOME_AND_REFERENCES.out.assembly_report,
-        EXTRACT_PROTEIN_CODING_GENES.out.protein_coding_genes,
+        EXTRACT_GENES.out.genes,
         DOWNLOAD_GENOME_AND_REFERENCES.out.clinically_relevant
     )
 
     SPLICE_SITE_GNOMAD_FREQ(
         DOWNLOAD_GENOME_AND_REFERENCES.out.gtf,
         DOWNLOAD_GENOME_AND_REFERENCES.out.gtf_index,
-        EXTRACT_PROTEIN_CODING_GENES.out.protein_coding_genes,
+        EXTRACT_GENES.out.genes,
         DOWNLOAD_GENOME_AND_REFERENCES.out.clinically_relevant,
         DOWNLOAD_GENOME_AND_REFERENCES.out.assembly_report
     )
@@ -58,6 +58,7 @@ workflow {
         , BUILD_GENOME_REFERENCE.out.fasta
         , BUILD_GENOME_REFERENCE.out.fasta_fai_index
         , BUILD_GENOME_REFERENCE.out.fasta_gzi_index
+        , BUILD_GENOME_REFERENCE.out.mask_regions_bed
         , BUILD_ANNOTATION_REFERENCE.out.gtf
         , BUILD_ANNOTATION_REFERENCE.out.gtf_index
     )

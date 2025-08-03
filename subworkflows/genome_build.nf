@@ -71,4 +71,5 @@ workflow BUILD_GENOME_REFERENCE {
     fasta                 = MASK_FASTA.out.fasta
     fasta_fai_index       = MASK_FASTA.out.fasta_fai_index
     fasta_gzi_index       = MASK_FASTA.out.fasta_gzi_index
+    mask_regions_bed      = MASK_FASTA.out.mask_regions_bed
 }
