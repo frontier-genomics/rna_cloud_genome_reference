@@ -129,7 +129,7 @@ def get_cen_par_regions(cen_par_regions: str) -> list[Region]:
             chrom=row['masked_copy_chr_name'],
             start=row['masked_copy_start'],
             end=row['masked_copy_stop'],
-            name=f"CEN_PAR-{row['masked_scaf_accn']}"
+            name=f"{row['masked_scaf_accn']}-CEN_PAR"
         )
         regions.append(region)
 

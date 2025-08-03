@@ -41,11 +41,11 @@ def test_get_grc_mask_regions():
     assert result[0].chrom == 'chr1'
     assert result[0].start == 16985958
     assert result[0].end == 17011928
-    assert result[0].name == 'ATP13A2'
+    assert result[0].name == 'ATP13A2-PRIMARY'
     assert result[1].chrom == 'chr1'
     assert result[1].start == 17018722
     assert result[1].end == 17054032
-    assert result[1].name == 'SDHB'
+    assert result[1].name == 'SDHB-PRIMARY'
 
 def test_get_cen_par_regions():
     result = get_cen_par_regions(cen_par_regions='tests/fixtures/unmasked_cognates_of_masked_CEN_PAR.txt')
@@ -54,4 +54,4 @@ def test_get_cen_par_regions():
     assert result[0].chrom == 'chr5'
     assert result[0].start == 47309185
     assert result[0].end == 49591369
-    assert result[0].name == 'GJ212203.1'
+    assert result[0].name == 'GJ212203.1-CEN_PAR'
