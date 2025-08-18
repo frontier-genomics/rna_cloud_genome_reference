@@ -46,9 +46,17 @@ def get_grc_fixes_contigs(grc_fixes_assessment: str, query: str) -> list[str]:
         logger.warning("No clinically relevant genes with discrepancies found in GRC fixes assessment.")
         return []
 
-    contigs = grc_filtered['alt_chr_ucsc'].unique().tolist()
+    # Both fix and primary contigs need to be added. There are a few instances where the fix contig
+    # is for a gene annotated on an alt contig e.g. chr19_KI270866v1_alt -> chr19_MU273386v1_fix (HG-2469, GPI)
+    contigs_fix = grc_filtered['alt_chr_ucsc'].unique().tolist()
+    logger.debug(f"Number of fix contigs: {len(contigs_fix)}")
+
+    contigs_primary = grc_filtered['chr_ucsc'].unique().tolist()
+    logger.debug(f"Number of primary contigs: {len(contigs_primary)}")
+
+    contigs_fix.extend(contigs_primary)
     
-    return sorted(set(contigs))
+    return sorted(set(contigs_fix))
 
 def get_target_contigs(assembly_report: str,
                        grc_fixes_assessment: str,
@@ -63,7 +71,10 @@ def get_target_contigs(assembly_report: str,
     contigs_set_1.extend(contigs_set_2)
     logger.debug(f"No. of contigs after merging: {len(contigs_set_1)}")
 
-    print(' '.join(contigs_set_1), end='')
+    unique_contigs = sorted(set(contigs_set_1))
+    logger.debug(f"No. of unique contigs after merging: {len(unique_contigs)}")
+
+    print(' '.join(unique_contigs), end='')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Generate contigs to be extracts from FASTA and GTF.")
