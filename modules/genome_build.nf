@@ -121,6 +121,26 @@ process GRC_FIX_AND_ASSEMBLY_MASK_REGIONS {
     """
 }
 
+process GRC_FIX_UNMASK_REGIONS {
+    tag "GRC_FIX_UNMASK_REGIONS"
+    label "python"
+    publishDir "${params.output_dir}", mode: 'copy'
+
+    input:
+    path grc_fixes_assessment
+    path gtf
+    path gtf_index
+
+    output:
+    path "unmasked_regions.bed", emit: bed
+
+    script:
+    """
+    set -euo pipefail
+    python3 -m rnacloud_genome_reference.genome_build.generate_unmask_bed ${grc_fixes_assessment} ${gtf} unmasked_regions.bed
+    """
+}
+
 process REDUNDANT_5S_MASK_REGIONS {
     tag "REDUNDANT_5S_REGIONS"
 
@@ -191,17 +211,17 @@ process MASK_FASTA {
     path "${final_output_prefix}_rna_cloud.fasta.gz", emit: fasta
     path "${final_output_prefix}_rna_cloud.fasta.gz.fai", emit: fasta_fai_index
     path "${final_output_prefix}_rna_cloud.fasta.gz.gzi", emit: fasta_gzi_index
-    path "mask_regions.bed", emit: mask_regions_bed
+    path "masked_regions.bed", emit: mask_regions_bed
 
     script:
     """
     set -euo pipefail
 
     echo "Combining bed files for masking..."
-    cat ${grc_fixes_and_assembly_mask_regions_bed} ${redundant_5s_regions_bed} | sort -u > mask_regions.bed
+    cat ${grc_fixes_and_assembly_mask_regions_bed} ${redundant_5s_regions_bed} | sort -u > masked_regions.bed
 
     echo "Masking FASTA file with GRC fixes and redundant 5S regions..."
-    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed mask_regions.bed -fo ${final_output_prefix}_rna_cloud.fasta
+    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed masked_regions.bed -fo ${final_output_prefix}_rna_cloud.fasta
 
     echo "Compressing the masked FASTA file..."
     bgzip ${final_output_prefix}_rna_cloud.fasta

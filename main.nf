@@ -59,6 +59,7 @@ workflow {
         , BUILD_GENOME_REFERENCE.out.fasta_fai_index
         , BUILD_GENOME_REFERENCE.out.fasta_gzi_index
         , BUILD_GENOME_REFERENCE.out.mask_regions_bed
+        , BUILD_GENOME_REFERENCE.out.unmask_regions_bed
         , BUILD_ANNOTATION_REFERENCE.out.gtf
         , BUILD_ANNOTATION_REFERENCE.out.gtf_index
     )

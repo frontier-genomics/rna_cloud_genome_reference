@@ -6,6 +6,7 @@ include { SUBSET_FASTA } from '../modules/genome_build.nf'
 include { ADD_EBV } from '../modules/genome_build.nf'
 include { REDUNDANT_5S_MASK_REGIONS } from '../modules/genome_build.nf'
 include { GRC_FIX_AND_ASSEMBLY_MASK_REGIONS } from '../modules/genome_build.nf'
+include { GRC_FIX_UNMASK_REGIONS } from '../modules/genome_build.nf'
 include { MASK_FASTA } from '../modules/genome_build.nf'
 
 workflow BUILD_GENOME_REFERENCE {
@@ -54,6 +55,12 @@ workflow BUILD_GENOME_REFERENCE {
         cen_par_mask_regions
     )
 
+    GRC_FIX_UNMASK_REGIONS(
+        grc_fixes_assessment,
+        gtf,
+        gtf_index
+    )
+
     // Obtain the final output prefix from the FASTA filename
     def fasta_filename_from_url = "${params.genome.fasta_url.tokenize('/')[-1]}"
     def (full, final_output_prefix, suffix) = (fasta_filename_from_url =~ /(G.+p\d+)(_.+)/)[0]
@@ -72,4 +79,5 @@ workflow BUILD_GENOME_REFERENCE {
     fasta_fai_index       = MASK_FASTA.out.fasta_fai_index
     fasta_gzi_index       = MASK_FASTA.out.fasta_gzi_index
     mask_regions_bed      = MASK_FASTA.out.mask_regions_bed
+    unmask_regions_bed    = GRC_FIX_UNMASK_REGIONS.out.bed
 }

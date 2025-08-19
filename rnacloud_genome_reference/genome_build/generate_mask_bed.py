@@ -5,24 +5,9 @@ import logging
 import pandas as pd
 
 from rnacloud_genome_reference.common.gtf import GTFHandler
-from rnacloud_genome_reference.genome_build.get_target_contigs import GRC_FIXES_QUERY
+from rnacloud_genome_reference.genome_build.common import GRC_FIXES_QUERY, Region, write_bed_file
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class Region:
-    chrom: str
-    start: int # 1-based index
-    end: int
-    name: str = ''
-    score: int | None = 0
-    strand: str | None = '.'
-
-    def __repr__(self) -> str:
-        return (f"BedRegion(chrom={self.chrom}, start={self.start}, "
-                f"end={self.end}, name={self.name}, score={self.score}, "
-                f"strand={self.strand})")
 
 def range_diff(start1: int, end1: int, start2: int, end2: int) -> list[tuple[int, int]] | None:
     if start1 > end1:
@@ -135,23 +120,16 @@ def get_cen_par_regions(cen_par_regions: str) -> list[Region]:
 
     return regions    
 
-def write_bed_file(*region_lists: list[Region], output_file: str):
-    with open(output_file, 'w') as bed_file:
-        for region_list in region_lists:
-            for region in region_list:
-                adjusted_start = region.start - 1  # Convert to 0-based index for BED format
-                bed_file.write(f"{region.chrom}\t{adjusted_start}\t{region.end}\t{region.name}\t{region.score}\t{region.strand}\n")
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate GRC mask regions from GRC fixes assessment and GTF file.")
     parser.add_argument("grc_fixes_assessment", help="Path to the GRC fixes assessment TSV file.")
     parser.add_argument("gtf", help="Path to the GTF file.")
     parser.add_argument("cen_par_regions", help="Path to the centromere and PAR regions file.")
-    parser.add_argument("output_file", default="mask_regions.bed", help="Output BED file name.")
+    parser.add_argument("output_bed", default="mask_regions.bed", help="Output BED file containing regions that should be masked.")
 
     args = parser.parse_args()
 
     grc_fix_mask_regions = get_grc_mask_regions(args.grc_fixes_assessment, args.gtf, GRC_FIXES_QUERY)
     cen_par_mask_regions = get_cen_par_regions(args.cen_par_regions)
 
-    write_bed_file(grc_fix_mask_regions, cen_par_mask_regions, output_file=args.output_file)
+    write_bed_file(grc_fix_mask_regions, cen_par_mask_regions, output_file=args.output_bed)

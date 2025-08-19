@@ -5,22 +5,9 @@ import pandas as pd
 
 from rnacloud_genome_reference.common.gtf import GTFHandler
 from rnacloud_genome_reference.common.utils import ChromosomeConverter
+from rnacloud_genome_reference.genome_build.common import ASSEMBLY_REPORT_QUERY, GRC_FIXES_QUERY
 
 logger = logging.getLogger(__name__)
-
-GRC_FIXES_QUERY = '''
-    (comparison_status == 'Different - Sequences differ' and clinically_relevant_gene == True) or \
-    (comparison_status == 'Different - Exon numbering is discordant' and clinically_relevant_gene == True) or \
-    (comparison_status == 'Not comparable - Partial transcript annotation in GTF file' and clinically_relevant_gene == True and fix_contig_transcript_partial == False) or \
-    (comparison_status == 'Different - No. of exons or introns differ' and clinically_relevant_gene == True)
-'''
-
-ASSEMBLY_REPORT_QUERY = '''
-    `Sequence-Role` == 'assembled-molecule' or \
-    `RefSeq-Accn` == 'NT_187388.1' or \
-    `RefSeq-Accn` == 'NT_167214.1' or \
-    `RefSeq-Accn` == 'NT_187633.1'
-'''
 
 def get_assembly_report_contigs(assembly_report: str, query: str) -> list[str]:
     df = pd.read_csv(assembly_report, 
