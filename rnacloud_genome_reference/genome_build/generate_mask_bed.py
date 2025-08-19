@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 
 from rnacloud_genome_reference.common.gtf import GTFHandler
-from rnacloud_genome_reference.genome_build.common import GRC_FIXES_QUERY, Region, write_bed_file
+from rnacloud_genome_reference.genome_build.common import GRC_FIXES_QUERY, Region, subtract_ranges, write_bed_file
 
 logger = logging.getLogger(__name__)
 
@@ -66,41 +66,35 @@ def get_grc_mask_regions(grc_fixes_assessment: str,
 
     gtf_handler = GTFHandler(gtf)
 
-    for _, row in grc_filtered.iterrows():
-        fix_contig_ucsc = row['alt_chr_ucsc']
-        fix_contig_refseq = row['alt_chr_refseq']
-        entrez_gene_id = row['entrez_gene_id']
-        start = row['alt_scaf_start']
-        end = row['alt_scaf_stop']
-        gene_name = f"{row['gene_name']}-FIX"
+    for _, contig in grc_filtered[['alt_chr_ucsc','alt_scaf_start','alt_scaf_stop']].drop_duplicates().iterrows():
+        fix_contig_range = (contig['alt_scaf_start'], 
+                            contig['alt_scaf_stop'])
+        
+        grc_fixes_for_contig = grc_filtered.query(f'alt_chr_ucsc == "{contig["alt_chr_ucsc"]}"')
 
-        fixed_gene = gtf_handler.get_gene_by_entrez_id(fix_contig_refseq, entrez_gene_id)
+        fix_genes_ranges = []
 
-        if fixed_gene is None:
-            logger.error(f"Could not find gene with Entrez ID {entrez_gene_id} in contig {fix_contig_refseq}")
-            raise ValueError(f"Gene with Entrez ID {entrez_gene_id} not found in contig {fix_contig_refseq}")
-        else:
-            logger.info(f"Found gene {fixed_gene} in contig {fix_contig_refseq}")
+        for _, row in grc_fixes_for_contig.iterrows():
+            fix_contig_ucsc = row['alt_chr_ucsc']
+            fix_contig_refseq = row['alt_chr_refseq']
+            entrez_gene_id = row['entrez_gene_id']
 
-        fix_contig_mask_regions = range_diff(
-            start1=start,
-            end1=end,
-            start2=fixed_gene.start,
-            end2=fixed_gene.end
-        )
+            fixed_gene = gtf_handler.get_gene_by_entrez_id(fix_contig_refseq, entrez_gene_id)
 
-        if fix_contig_mask_regions is None:
-            logger.warning(f"No range difference found for gene {gene_name} in contig {fix_contig_refseq}")
-        else:
-            for diff in fix_contig_mask_regions:
-                mask_region = Region(
-                    chrom=fix_contig_ucsc,
-                    start=diff[0],
-                    end=diff[1],
-                    name=gene_name
-                )
-                mask_regions.append(mask_region)
-                logger.info(f"Added mask region: {mask_region}")
+            if fixed_gene is not None:
+                fix_genes_ranges.append((fixed_gene.start, fixed_gene.end))
+
+        mask_ranges = subtract_ranges(fix_contig_range, fix_genes_ranges)
+
+        gene_names = '-'.join(grc_fixes_for_contig['gene_name'].to_list())
+
+        for gene_range in mask_ranges:
+            mask_regions.append(Region(
+                chrom=contig['alt_chr_ucsc'],
+                start=gene_range[0],
+                end=gene_range[1],
+                name=f"{gene_names}-FIX"
+            ))
 
     return mask_regions
 
