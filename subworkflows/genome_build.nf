@@ -49,6 +49,7 @@ workflow BUILD_GENOME_REFERENCE {
     REDUNDANT_5S_MASK_REGIONS(gtf)
 
     GRC_FIX_AND_ASSEMBLY_MASK_REGIONS(
+        assembly_report,
         grc_fixes_assessment,
         gtf,
         gtf_index,

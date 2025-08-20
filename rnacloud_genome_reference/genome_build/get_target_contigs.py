@@ -4,7 +4,7 @@ import logging
 import pandas as pd
 
 from rnacloud_genome_reference.common.gtf import GTFHandler
-from rnacloud_genome_reference.common.utils import ChromosomeConverter
+from rnacloud_genome_reference.common.utils import AssemblyReportParser
 from rnacloud_genome_reference.genome_build.common import ASSEMBLY_REPORT_QUERY, GRC_FIXES_QUERY
 
 logger = logging.getLogger(__name__)

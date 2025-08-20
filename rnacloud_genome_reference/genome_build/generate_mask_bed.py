@@ -5,9 +5,12 @@ import logging
 import pandas as pd
 
 from rnacloud_genome_reference.common.gtf import GTFHandler
+from rnacloud_genome_reference.common.utils import AssemblyReportParser
 from rnacloud_genome_reference.genome_build.common import GRC_FIXES_QUERY, Region, subtract_ranges, write_bed_file
 
 logger = logging.getLogger(__name__)
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 def range_diff(start1: int, end1: int, start2: int, end2: int) -> list[tuple[int, int]] | None:
     if start1 > end1:
@@ -41,7 +44,8 @@ def range_diff(start1: int, end1: int, start2: int, end2: int) -> list[tuple[int
 
     return diffs
 
-def get_grc_mask_regions(grc_fixes_assessment: str,
+def get_grc_mask_regions(assembly_report: str,
+                         grc_fixes_assessment: str,
                          gtf: str,
                          query: str) -> list[Region]:
     mask_regions = []
@@ -65,11 +69,12 @@ def get_grc_mask_regions(grc_fixes_assessment: str,
         mask_regions.append(region)
 
     gtf_handler = GTFHandler(gtf)
+    assembly_report_parser = AssemblyReportParser(assembly_report)
 
-    for _, contig in grc_filtered[['alt_chr_ucsc','alt_scaf_start','alt_scaf_stop']].drop_duplicates().iterrows():
-        fix_contig_range = (contig['alt_scaf_start'], 
-                            contig['alt_scaf_stop'])
-        
+    for _, contig in grc_filtered[['alt_chr_ucsc']].drop_duplicates().iterrows():
+        fix_contig_range = assembly_report_parser.get_contig_range(contig['alt_chr_ucsc'])
+        logger.debug(f"Fix contig {contig['alt_chr_ucsc']} {fix_contig_range}")
+
         grc_fixes_for_contig = grc_filtered.query(f'alt_chr_ucsc == "{contig["alt_chr_ucsc"]}"')
 
         fix_genes_ranges = []
@@ -82,9 +87,14 @@ def get_grc_mask_regions(grc_fixes_assessment: str,
             fixed_gene = gtf_handler.get_gene_by_entrez_id(fix_contig_refseq, entrez_gene_id)
 
             if fixed_gene is not None:
+                logger.debug(f"Entrez gene id {entrez_gene_id} / {row['gene_name']} {fixed_gene}")
                 fix_genes_ranges.append((fixed_gene.start, fixed_gene.end))
 
-        mask_ranges = subtract_ranges(fix_contig_range, fix_genes_ranges)
+        try:
+            mask_ranges = subtract_ranges(fix_contig_range, fix_genes_ranges)
+        except ValueError as e:
+            logger.error(f"Could not compute mask ranges for {contig['alt_chr_ucsc']}: {e}")
+            raise ValueError(f"Failed to compute mask ranges for {fix_contig_refseq} {fix_contig_range} and {fixed_gene}") from e
 
         gene_names = '-'.join(grc_fixes_for_contig['gene_name'].to_list())
 
@@ -116,6 +126,7 @@ def get_cen_par_regions(cen_par_regions: str) -> list[Region]:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate GRC mask regions from GRC fixes assessment and GTF file.")
+    parser.add_argument("assembly_report", help="Path to the assembly report file.")
     parser.add_argument("grc_fixes_assessment", help="Path to the GRC fixes assessment TSV file.")
     parser.add_argument("gtf", help="Path to the GTF file.")
     parser.add_argument("cen_par_regions", help="Path to the centromere and PAR regions file.")
@@ -123,7 +134,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    grc_fix_mask_regions = get_grc_mask_regions(args.grc_fixes_assessment, args.gtf, GRC_FIXES_QUERY)
+    grc_fix_mask_regions = get_grc_mask_regions(args.assembly_report, args.grc_fixes_assessment, args.gtf, GRC_FIXES_QUERY)
     cen_par_mask_regions = get_cen_par_regions(args.cen_par_regions)
 
     write_bed_file(grc_fix_mask_regions, cen_par_mask_regions, output_file=args.output_bed)

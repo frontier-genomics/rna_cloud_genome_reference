@@ -106,6 +106,7 @@ process GRC_FIX_AND_ASSEMBLY_MASK_REGIONS {
     label "python"
 
     input:
+    path assembly_report
     path grc_fixes_assessment
     path gtf
     path gtf_index
@@ -117,7 +118,7 @@ process GRC_FIX_AND_ASSEMBLY_MASK_REGIONS {
     script:
     """
     set -euo pipefail
-    python3 -m rnacloud_genome_reference.genome_build.generate_mask_bed ${grc_fixes_assessment} ${gtf} ${cen_par_mask_regions} grc_fixes_and_assembly_mask_regions.bed
+    python3 -m rnacloud_genome_reference.genome_build.generate_mask_bed ${assembly_report} ${grc_fixes_assessment} ${gtf} ${cen_par_mask_regions} grc_fixes_and_assembly_mask_regions.bed
     """
 }
 
