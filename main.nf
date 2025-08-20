@@ -7,6 +7,7 @@ include { SPLICE_SITE_GNOMAD_FREQ } from './subworkflows/splice_site_gnomad_freq
 include { BUILD_GENOME_REFERENCE } from './subworkflows/genome_build.nf'
 include { BUILD_ANNOTATION_REFERENCE } from './subworkflows/annotation_build.nf'
 include { CALCULATE_MD5_SUMMARY } from './modules/common.nf'
+include { VALIDATE_GENOME_ANNOTATION } from './modules/validate.nf'
 
 workflow {
     DOWNLOAD_GENOME_AND_REFERENCES()
@@ -62,6 +63,15 @@ workflow {
         , BUILD_GENOME_REFERENCE.out.unmask_regions_bed
         , BUILD_ANNOTATION_REFERENCE.out.gtf
         , BUILD_ANNOTATION_REFERENCE.out.gtf_index
+    )
+
+    VALIDATE_GENOME_ANNOTATION(
+        BUILD_GENOME_REFERENCE.out.fasta,
+        BUILD_GENOME_REFERENCE.out.fasta_fai_index,
+        BUILD_ANNOTATION_REFERENCE.out.gtf,
+        BUILD_ANNOTATION_REFERENCE.out.gtf_index,
+        BUILD_GENOME_REFERENCE.out.mask_regions_bed,
+        BUILD_GENOME_REFERENCE.out.unmask_regions_bed
     )
 
     CALCULATE_MD5_SUMMARY(final_outputs)
