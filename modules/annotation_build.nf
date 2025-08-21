@@ -118,16 +118,14 @@ process CONVERT_ANNOTATION_REFSEQ_TO_UCSC {
 
 process SUBSET_GTF {
     tag "SUBSET_GTF"
-    publishDir "${params.output_dir}", mode: 'copy'
 
     input:
     path gtf
     val target_contigs
-    val final_output_prefix
 
     output:
-    path "${final_output_prefix}_rna_cloud.gtf.gz", emit: gtf
-    path "${final_output_prefix}_rna_cloud.gtf.gz.tbi", emit: gtf_index
+    path "subset.gtf.gz", emit: gtf
+    path "subset.gtf.gz.tbi", emit: gtf_index
 
     script:
     """
@@ -140,7 +138,36 @@ process SUBSET_GTF {
     tabix ${gtf}.gz
 
     echo "Filtering GTF for target contigs"
-    tabix ${gtf}.gz ${target_contigs} | bgzip -c > ${final_output_prefix}_rna_cloud.gtf.gz
+    tabix ${gtf}.gz ${target_contigs} | bgzip -c > subset.gtf.gz
+    tabix subset.gtf.gz
+    """
+}
+
+process SORT_GTF {
+    tag "SORT_GTF"
+    publishDir "${params.output_dir}", mode: 'copy'
+
+    input:
+    val final_output_prefix
+    path gtf
+    path gtf_index
+
+    output:
+    path "${final_output_prefix}_rna_cloud.gtf.gz", emit: gtf
+    path "${final_output_prefix}_rna_cloud.gtf.gz.tbi", emit: gtf_index
+
+    script:
+    """
+    set -euo pipefail
+
+    echo "Sorting GTF file"
+    /app/rnacloud_genome_reference/genome_build/scripts/gtf_sort.sh \
+      ${gtf} ${final_output_prefix}_rna_cloud.gtf
+
+    echo "Compressing GTF file"
+    bgzip ${final_output_prefix}_rna_cloud.gtf
+
+    echo "Indexing GTF file"
     tabix ${final_output_prefix}_rna_cloud.gtf.gz
     """
 }

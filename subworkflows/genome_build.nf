@@ -8,6 +8,7 @@ include { REDUNDANT_5S_MASK_REGIONS } from '../modules/genome_build.nf'
 include { GRC_FIX_AND_ASSEMBLY_MASK_REGIONS } from '../modules/genome_build.nf'
 include { GRC_FIX_UNMASK_REGIONS } from '../modules/genome_build.nf'
 include { MASK_FASTA } from '../modules/genome_build.nf'
+include { SORT_FASTA } from '../modules/genome_build.nf'
 
 workflow BUILD_GENOME_REFERENCE {
     take:
@@ -71,14 +72,21 @@ workflow BUILD_GENOME_REFERENCE {
         REDUNDANT_5S_MASK_REGIONS.out.bed,
         ADD_EBV.out.fasta,
         ADD_EBV.out.fasta_fai_index,
-        ADD_EBV.out.fasta_gzi_index,
-        final_output_prefix // Prefix for output files
+        ADD_EBV.out.fasta_gzi_index
+    )
+
+
+    SORT_FASTA(
+        final_output_prefix,
+        MASK_FASTA.out.fasta,
+        MASK_FASTA.out.fasta_fai_index,
+        MASK_FASTA.out.fasta_gzi_index
     )
 
     emit:
-    fasta                 = MASK_FASTA.out.fasta
-    fasta_fai_index       = MASK_FASTA.out.fasta_fai_index
-    fasta_gzi_index       = MASK_FASTA.out.fasta_gzi_index
+    fasta                 = SORT_FASTA.out.fasta
+    fasta_fai_index       = SORT_FASTA.out.fasta_fai_index
+    fasta_gzi_index       = SORT_FASTA.out.fasta_gzi_index
     mask_regions_bed      = MASK_FASTA.out.mask_regions_bed
     unmask_regions_bed    = GRC_FIX_UNMASK_REGIONS.out.bed
 }

@@ -198,7 +198,7 @@ process REDUNDANT_5S_MASK_REGIONS {
 
 process MASK_FASTA {
     tag "MASK_FASTA"
-    publishDir "${params.output_dir}", mode: 'copy'
+    publishDir "${params.output_dir}", mode: 'copy', pattern: "mask_regions_bed"
 
     input:
     path grc_fixes_and_assembly_mask_regions_bed
@@ -206,12 +206,11 @@ process MASK_FASTA {
     path fasta
     path fasta_fai_index
     path fasta_gzi_index
-    val final_output_prefix  // Prefix for output files
 
     output:
-    path "${final_output_prefix}_rna_cloud.fasta.gz", emit: fasta
-    path "${final_output_prefix}_rna_cloud.fasta.gz.fai", emit: fasta_fai_index
-    path "${final_output_prefix}_rna_cloud.fasta.gz.gzi", emit: fasta_gzi_index
+    path "masked.fasta.gz", emit: fasta
+    path "masked.fasta.gz.fai", emit: fasta_fai_index
+    path "masked.fasta.gz.gzi", emit: fasta_gzi_index
     path "masked_regions.bed", emit: mask_regions_bed
 
     script:
@@ -222,12 +221,45 @@ process MASK_FASTA {
     cat ${grc_fixes_and_assembly_mask_regions_bed} ${redundant_5s_regions_bed} | sort -u > masked_regions.bed
 
     echo "Masking FASTA file with GRC fixes and redundant 5S regions..."
-    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed masked_regions.bed -fo ${final_output_prefix}_rna_cloud.fasta
+    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed masked_regions.bed -fo masked.fasta
 
     echo "Compressing the masked FASTA file..."
-    bgzip ${final_output_prefix}_rna_cloud.fasta
+    bgzip masked.fasta
 
     echo "Indexing the masked FASTA file..."
+    samtools faidx masked.fasta.gz
+    """
+}
+
+process SORT_FASTA {
+    tag "SORT_FASTA"
+    publishDir "${params.output_dir}", mode: 'copy'
+
+    // Set default CPUs (2), can be overridden in nextflow.config or command line
+    cpus 2
+
+    input:
+    val final_output_prefix  // Prefix for output files
+    path fasta
+    path fasta_fai_index
+    path fasta_gzi_index
+
+    output:
+    path "${final_output_prefix}_rna_cloud.fasta.gz", emit: fasta
+    path "${final_output_prefix}_rna_cloud.fasta.gz.fai", emit: fasta_fai_index
+    path "${final_output_prefix}_rna_cloud.fasta.gz.gzi", emit: fasta_gzi_index
+
+    script:
+    """
+    set -euo pipefail
+
+    echo "Sorting and compressing RNA cloud FASTA file..."
+    seqkit sort -j ${task.cpus} -N -o ${final_output_prefix}_rna_cloud.fasta ${fasta}
+
+    echo "Compressing RNA cloud FASTA file..."
+    bgzip -@ ${task.cpus} ${final_output_prefix}_rna_cloud.fasta
+
+    echo "Indexing RNA cloud FASTA file..."
     samtools faidx ${final_output_prefix}_rna_cloud.fasta.gz
     """
 }

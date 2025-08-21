@@ -98,7 +98,7 @@ else
   VALIDATION_STATUS=1
 fi
 
-WARNINGS_COUNT=$(grep 'WARNING' output/unmasked_regions.fasta.log | wc -l)
+WARNINGS_COUNT=$(grep 'WARNING' unmasked_regions.fasta.log | wc -l)
 
 if [ "$WARNINGS_COUNT" -eq 0 ]; then
   echo ✅ No warnings found in unmasked regions FASTA extraction!

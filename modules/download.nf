@@ -114,3 +114,25 @@ process DOWNLOAD_FILE {
     wget -qc ${file_url}
     """
 }
+
+process DOWNLOAD_EBV_GTF {
+    tag "DOWNLOAD_EBV_GTF"
+    storeDir "${params.data_dir}"
+
+    input:
+    val ebv_annotation_url
+
+    output:
+    path "EBV.gtf", emit: gtf
+
+    script:
+    """
+    set -euo pipefail
+
+    echo "Downloading EBV GTF file..."
+    wget -q -O orig.gtf.gz \"${ebv_annotation_url}\"
+
+    echo "Unzipping EBV GTF file and setting contig to chrEBV..."
+    gunzip -c orig.gtf.gz | awk -F"\t" 'BEGIN{OFS="\t"}; \$1 !~ /^#/ { \$1="chrEBV"; print }' > EBV.gtf
+    """
+}

@@ -1,11 +1,14 @@
 nextflow.enable.dsl=2
 
+include { DOWNLOAD_EBV_GTF } from '../modules/download.nf'
 include { CONVERT_ANNOTATION_REFSEQ_TO_UCSC } from '../modules/annotation_build.nf'
 include { GET_TARGET_CONTIGS } from '../modules/genome_build.nf'
 include { SUBSET_GTF } from '../modules/annotation_build.nf'
-include { APPEND_GTFS } from '../modules/annotation_build.nf'
+include { APPEND_GTFS as APPEND_RIBOSOMAL_RNA_GTFS } from '../modules/annotation_build.nf'
+include { APPEND_GTFS as APPEND_EBV_GTF } from '../modules/annotation_build.nf'
 include { DECOMPRESS_GTF } from '../modules/annotation_build.nf'
 include { REMOVE_SECTIONS } from '../modules/annotation_build.nf'
+include { SORT_GTF } from '../modules/annotation_build.nf'
 
 workflow BUILD_ANNOTATION_REFERENCE {
     take:
@@ -18,6 +21,10 @@ workflow BUILD_ANNOTATION_REFERENCE {
         gtf
     )
 
+    DOWNLOAD_EBV_GTF(
+        params.genome.ebv_annotation_url
+    )
+
     REMOVE_SECTIONS(
         DECOMPRESS_GTF.out.gtf,
         Channel.value([["NC_000021.9", "rRNA"],
@@ -25,15 +32,20 @@ workflow BUILD_ANNOTATION_REFERENCE {
                        ["NT_167214.1", "rRNA"]])
     )
 
-    APPEND_GTFS(
+    APPEND_RIBOSOMAL_RNA_GTFS(
         REMOVE_SECTIONS.out.gtf,
         Channel.value([params.rRNA.NC_000021,
                        params.rRNA.NT_187388,
                        params.rRNA.NT_167214])
     )
 
+    APPEND_EBV_GTF(
+        APPEND_RIBOSOMAL_RNA_GTFS.out.gtf,
+        DOWNLOAD_EBV_GTF.out.gtf.toList()
+    )
+
     CONVERT_ANNOTATION_REFSEQ_TO_UCSC(
-        APPEND_GTFS.out.gtf,
+        APPEND_EBV_GTF.out.gtf,
         assembly_report
     )
 
@@ -50,11 +62,16 @@ workflow BUILD_ANNOTATION_REFERENCE {
 
     SUBSET_GTF(
         CONVERT_ANNOTATION_REFSEQ_TO_UCSC.out.gtf,
-        target_contigs,
-        final_output_prefix // Prefix for output files
+        target_contigs
+    )
+
+    SORT_GTF(
+        final_output_prefix, // Prefix for output files
+        SUBSET_GTF.out.gtf,
+        SUBSET_GTF.out.gtf_index
     )
 
     emit:
-    gtf                   = SUBSET_GTF.out.gtf
-    gtf_index             = SUBSET_GTF.out.gtf_index
+    gtf                   = SORT_GTF.out.gtf
+    gtf_index             = SORT_GTF.out.gtf_index
 }

@@ -45,6 +45,9 @@ def get_grc_fixes_contigs(grc_fixes_assessment: str, query: str) -> list[str]:
     
     return sorted(set(contigs_fix))
 
+def get_EBV_contig() -> list[str]:
+    return ['chrEBV']
+
 def get_target_contigs(assembly_report: str,
                        grc_fixes_assessment: str,
                        assembly_report_query: str,
@@ -55,7 +58,10 @@ def get_target_contigs(assembly_report: str,
     contigs_set_2 = get_grc_fixes_contigs(grc_fixes_assessment, grc_fixes_query)
     logger.debug(f"No. of contigs contigs_set_2: {len(contigs_set_2)}")
 
+    contigs_set_3 = get_EBV_contig()
+
     contigs_set_1.extend(contigs_set_2)
+    contigs_set_1.extend(contigs_set_3)
     logger.debug(f"No. of contigs after merging: {len(contigs_set_1)}")
 
     unique_contigs = sorted(set(contigs_set_1))

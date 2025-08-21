@@ -24,6 +24,6 @@ process VALIDATE_GENOME_ANNOTATION {
       ${gtf} \
       ${gtf_index} \
       ${masked_regions_bed} \
-      ${unmasked_regions_bed}
+      ${unmasked_regions_bed} | tee validation_report.txt
     """
 }
