@@ -33,19 +33,15 @@ workflow BUILD_ANNOTATION_REFERENCE {
     )
 
     APPEND_RIBOSOMAL_RNA_GTFS(
+        "rRNA",
         REMOVE_SECTIONS.out.gtf,
         Channel.value([params.rRNA.NC_000021,
                        params.rRNA.NT_187388,
                        params.rRNA.NT_167214])
     )
 
-    APPEND_EBV_GTF(
-        APPEND_RIBOSOMAL_RNA_GTFS.out.gtf,
-        DOWNLOAD_EBV_GTF.out.gtf.toList()
-    )
-
     CONVERT_ANNOTATION_REFSEQ_TO_UCSC(
-        APPEND_EBV_GTF.out.gtf,
+        APPEND_RIBOSOMAL_RNA_GTFS.out.gtf,
         assembly_report
     )
 
@@ -65,10 +61,15 @@ workflow BUILD_ANNOTATION_REFERENCE {
         target_contigs
     )
 
+    APPEND_EBV_GTF(
+        "EBV",
+        SUBSET_GTF.out.gtf,
+        DOWNLOAD_EBV_GTF.out.gtf.toList()
+    )
+
     SORT_GTF(
         final_output_prefix, // Prefix for output files
-        SUBSET_GTF.out.gtf,
-        SUBSET_GTF.out.gtf_index
+        APPEND_EBV_GTF.out.gtf
     )
 
     emit:

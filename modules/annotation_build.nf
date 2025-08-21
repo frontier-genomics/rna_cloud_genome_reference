@@ -56,11 +56,12 @@ process APPEND_GTFS {
     tag "APPEND_GTFS"
 
     input:
+    val appended_contigs  // Plain label
     path gtf
     val additional_gtfs  // List of additional GTF paths as strings
 
     output:
-    path "${gtf.baseName}.appended.gtf", emit: gtf
+    path "${appended_contigs}.gtf", emit: gtf
 
     script:
     """
@@ -77,7 +78,7 @@ process APPEND_GTFS {
     done
 
     # Concatenate main GTF and all additional GTFs
-    cat ${gtf} ${additional_gtfs.join(' ')} > "${gtf.baseName}.appended.gtf"
+    cat ${gtf} ${additional_gtfs.join(' ')} > "${appended_contigs}.gtf"
     """
 }
 
@@ -124,8 +125,7 @@ process SUBSET_GTF {
     val target_contigs
 
     output:
-    path "subset.gtf.gz", emit: gtf
-    path "subset.gtf.gz.tbi", emit: gtf_index
+    path "subset.gtf", emit: gtf
 
     script:
     """
@@ -138,8 +138,7 @@ process SUBSET_GTF {
     tabix ${gtf}.gz
 
     echo "Filtering GTF for target contigs"
-    tabix ${gtf}.gz ${target_contigs} | bgzip -c > subset.gtf.gz
-    tabix subset.gtf.gz
+    tabix ${gtf}.gz ${target_contigs} > subset.gtf
     """
 }
 
@@ -150,7 +149,6 @@ process SORT_GTF {
     input:
     val final_output_prefix
     path gtf
-    path gtf_index
 
     output:
     path "${final_output_prefix}_rna_cloud.gtf.gz", emit: gtf

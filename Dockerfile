@@ -32,6 +32,12 @@ RUN /usr/local/bin/micromamba create -y -p /opt/conda/envs/bioenv -c conda-forge
 # Put that env first on PATH so binaries are available without activation
 ENV PATH=/opt/conda/envs/bioenv/bin:$PATH
 
+# Keeps Python from generating .pyc files in the container
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Turns off buffering for easier container logging
+ENV PYTHONUNBUFFERED=1
+
 # Create a non-root user for development
 ARG USERNAME=devuser
 ARG USER_UID=1000
