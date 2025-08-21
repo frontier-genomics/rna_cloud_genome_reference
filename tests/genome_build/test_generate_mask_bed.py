@@ -39,7 +39,8 @@ def QUERY_chr1_MU273333v1_fix():
     """
 
 def test_get_grc_mask_regions_chr1_MU273333v1_fix(QUERY_chr1_MU273333v1_fix):
-    result = get_grc_mask_regions(grc_fixes_assessment='tests/fixtures/grc_fixes_assessment.tsv',
+    result = get_grc_mask_regions(assembly_report='tests/fixtures/GCF_000001405.40_GRCh38.p14_assembly_report.txt',
+                                  grc_fixes_assessment='tests/fixtures/grc_fixes_assessment.tsv',
                                   gtf='tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.sorted.gtf.gz',
                                   query=QUERY_chr1_MU273333v1_fix)
     
