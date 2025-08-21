@@ -25,13 +25,13 @@ echo "Unmasked Regions BED  : $UNMASKED_REGIONS_BED"
 VALIDATION_STATUS=0
 echo 🎬 Starting Genome and Annotation build validation process
 
-echo 🕵️‍♀️ Comparing chromosomes in GTF and FASTA files...
+echo 🕵️‍♀️ Comparing contigs in GTF and FASTA files...
 
 GTF_CONTIGS=$(mktemp --suffix=.txt)
 FASTA_CONTIGS=$(mktemp --suffix=.txt)
 
-tabix -l "$GTF" | sort > "$GTF_CONTIGS"
-cut -f 1 "$FASTA_INDEX" | sort > "$FASTA_CONTIGS"
+tabix -l "$GTF" > "$GTF_CONTIGS"
+cut -f 1 "$FASTA_INDEX" > "$FASTA_CONTIGS"
 
 diff "$GTF_CONTIGS" "$FASTA_CONTIGS"
 
@@ -42,7 +42,31 @@ else
   VALIDATION_STATUS=1
 fi
 
-rm -f "$GTF_CONTIGS" "$FASTA_CONTIGS"
+echo 🕵️‍♀️ Check that contigs in GTF and FASTA are sorted in the correct order...
+
+GTF_CONTIGS_SORTED=$(mktemp --suffix=.txt)
+FASTA_CONTIGS_SORTED=$(mktemp --suffix=.txt)
+
+tabix -l "$GTF" | sort -k1,1V > "$GTF_CONTIGS_SORTED"
+cut -f 1 "$FASTA_INDEX" | sort -k1,1V > "$FASTA_CONTIGS_SORTED"
+
+diff "$GTF_CONTIGS_SORTED" "$GTF_CONTIGS" > /dev/null
+if [ $? -ne 0 ]; then
+  echo ⛔️ Contigs in GTF are not sorted in the correct order!
+  VALIDATION_STATUS=1
+else
+  echo ✅ Contigs in GTF are sorted in the correct order!
+fi
+
+diff "$FASTA_CONTIGS_SORTED" "$FASTA_CONTIGS" > /dev/null
+if [ $? -ne 0 ]; then
+  echo ⛔️ Contigs in FASTA are not sorted in the correct order!
+  VALIDATION_STATUS=1
+else
+  echo ✅ Contigs in FASTA are sorted in the correct order!
+fi
+
+rm -f "$GTF_CONTIGS" "$FASTA_CONTIGS" "$GTF_CONTIGS_SORTED" "$FASTA_CONTIGS_SORTED"
 
 echo 🕵️‍♀️ Check that EBV contig is present in the FASTA file...
 
