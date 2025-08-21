@@ -3,9 +3,6 @@ FROM python:3.12.11-bullseye
 # Install dependencies
 RUN apt-get update && \
     apt-get install -y \
-    samtools \
-    bedtools \
-    tabix \
     git \
     git-lfs \
     sudo \
@@ -13,22 +10,33 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install DuckDB CLI - detect architecture and download appropriate binary
+WORKDIR /tmp
+
+# Install micromamba (arch-specific)
 RUN ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ]; then \
-        DUCKDB_ARCH="amd64"; \
-    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
-        DUCKDB_ARCH="arm64"; \
+        MAMBA_URL="https://micro.mamba.pm/api/micromamba/linux-64/latest"; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        MAMBA_URL="https://micro.mamba.pm/api/micromamba/linux-aarch64/latest"; \
     else \
         echo "Unsupported architecture: $ARCH" && exit 1; \
     fi && \
-    wget -q https://github.com/duckdb/duckdb/releases/latest/download/duckdb_cli-linux-${DUCKDB_ARCH}.zip \
-    && unzip duckdb_cli-linux-${DUCKDB_ARCH}.zip \
-    && mv duckdb /usr/local/bin/ \
-    && chmod +x /usr/local/bin/duckdb \
-    && rm duckdb_cli-linux-${DUCKDB_ARCH}.zip && \
-    /usr/local/bin/duckdb --version && \
-    echo "DuckDB CLI installed successfully"
+    curl -L "$MAMBA_URL" | tar -xvj bin/micromamba && \
+    mv bin/micromamba /usr/local/bin/micromamba && \
+    rm -rf bin
+
+# Create an env in a fixed path and install samtools
+RUN /usr/local/bin/micromamba create -y -p /opt/conda/envs/bioenv -c conda-forge -c bioconda samtools=1.22.1 duckdb-cli=1.3.2 bedtools=2.31.1 seqkit=2.10.1 && \
+    /usr/local/bin/micromamba clean --all -y
+
+# Put that env first on PATH so binaries are available without activation
+ENV PATH=/opt/conda/envs/bioenv/bin:$PATH
+
+# Keeps Python from generating .pyc files in the container
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Turns off buffering for easier container logging
+ENV PYTHONUNBUFFERED=1
 
 # Create a non-root user for development
 ARG USERNAME=devuser

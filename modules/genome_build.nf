@@ -106,6 +106,7 @@ process GRC_FIX_AND_ASSEMBLY_MASK_REGIONS {
     label "python"
 
     input:
+    path assembly_report
     path grc_fixes_assessment
     path gtf
     path gtf_index
@@ -117,7 +118,27 @@ process GRC_FIX_AND_ASSEMBLY_MASK_REGIONS {
     script:
     """
     set -euo pipefail
-    python3 -m rnacloud_genome_reference.genome_build.generate_mask_bed ${grc_fixes_assessment} ${gtf} ${cen_par_mask_regions} grc_fixes_and_assembly_mask_regions.bed
+    python3 -m rnacloud_genome_reference.genome_build.generate_mask_bed ${assembly_report} ${grc_fixes_assessment} ${gtf} ${cen_par_mask_regions} grc_fixes_and_assembly_mask_regions.bed
+    """
+}
+
+process GRC_FIX_UNMASK_REGIONS {
+    tag "GRC_FIX_UNMASK_REGIONS"
+    label "python"
+    publishDir "${params.output_dir}", mode: 'copy'
+
+    input:
+    path grc_fixes_assessment
+    path gtf
+    path gtf_index
+
+    output:
+    path "unmasked_regions.bed", emit: bed
+
+    script:
+    """
+    set -euo pipefail
+    python3 -m rnacloud_genome_reference.genome_build.generate_unmask_bed ${grc_fixes_assessment} ${gtf} unmasked_regions.bed
     """
 }
 
@@ -177,7 +198,7 @@ process REDUNDANT_5S_MASK_REGIONS {
 
 process MASK_FASTA {
     tag "MASK_FASTA"
-    publishDir "${params.output_dir}", mode: 'copy'
+    publishDir "${params.output_dir}", mode: 'copy', pattern: "masked_regions.bed"
 
     input:
     path grc_fixes_and_assembly_mask_regions_bed
@@ -185,28 +206,60 @@ process MASK_FASTA {
     path fasta
     path fasta_fai_index
     path fasta_gzi_index
-    val final_output_prefix  // Prefix for output files
 
     output:
-    path "${final_output_prefix}_rna_cloud.fasta.gz", emit: fasta
-    path "${final_output_prefix}_rna_cloud.fasta.gz.fai", emit: fasta_fai_index
-    path "${final_output_prefix}_rna_cloud.fasta.gz.gzi", emit: fasta_gzi_index
-    path "mask_regions.bed", emit: mask_regions_bed
+    path "masked.fasta.gz", emit: fasta
+    path "masked.fasta.gz.fai", emit: fasta_fai_index
+    path "masked.fasta.gz.gzi", emit: fasta_gzi_index
+    path "masked_regions.bed", emit: mask_regions_bed
 
     script:
     """
     set -euo pipefail
 
     echo "Combining bed files for masking..."
-    cat ${grc_fixes_and_assembly_mask_regions_bed} ${redundant_5s_regions_bed} | sort -u > mask_regions.bed
+    cat ${grc_fixes_and_assembly_mask_regions_bed} ${redundant_5s_regions_bed} | sort -u > masked_regions.bed
 
     echo "Masking FASTA file with GRC fixes and redundant 5S regions..."
-    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed mask_regions.bed -fo ${final_output_prefix}_rna_cloud.fasta
+    bedtools maskfasta -fi <(gunzip -c ${fasta}) -bed masked_regions.bed -fo masked.fasta
 
     echo "Compressing the masked FASTA file..."
-    bgzip ${final_output_prefix}_rna_cloud.fasta
+    bgzip masked.fasta
 
     echo "Indexing the masked FASTA file..."
+    samtools faidx masked.fasta.gz
+    """
+}
+
+process SORT_FASTA {
+    tag "SORT_FASTA"
+    publishDir "${params.output_dir}", mode: 'copy'
+
+    // Set default CPUs (2), can be overridden in nextflow.config or command line
+    cpus 2
+
+    input:
+    val final_output_prefix  // Prefix for output files
+    path fasta
+    path fasta_fai_index
+    path fasta_gzi_index
+
+    output:
+    path "${final_output_prefix}_rna_cloud.fasta.gz", emit: fasta
+    path "${final_output_prefix}_rna_cloud.fasta.gz.fai", emit: fasta_fai_index
+    path "${final_output_prefix}_rna_cloud.fasta.gz.gzi", emit: fasta_gzi_index
+
+    script:
+    """
+    set -euo pipefail
+
+    echo "Sorting and compressing RNA cloud FASTA file..."
+    seqkit sort -j ${task.cpus} -N -o ${final_output_prefix}_rna_cloud.fasta ${fasta}
+
+    echo "Compressing RNA cloud FASTA file..."
+    bgzip -@ ${task.cpus} ${final_output_prefix}_rna_cloud.fasta
+
+    echo "Indexing RNA cloud FASTA file..."
     samtools faidx ${final_output_prefix}_rna_cloud.fasta.gz
     """
 }

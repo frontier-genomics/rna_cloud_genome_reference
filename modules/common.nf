@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 
 process CALCULATE_MD5_SUMMARY {
-    // Output directory for the checksums file
+    tag "CALCULATE_MD5_SUMMARY"
     publishDir "${params.output_dir}", mode: 'copy'
 
     input:

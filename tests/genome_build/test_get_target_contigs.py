@@ -22,7 +22,10 @@ def ASSEMBLY_REPORT_QUERY() -> str:
 @pytest.fixture
 def GRC_FIXES_QUERY() -> str:
     return '''
-        (comparison_status == 'Different - Sequences differ' and clinically_relevant_gene == True)
+        (comparison_status == 'Different - Sequences differ' and clinically_relevant_gene == True) or \
+        (comparison_status == 'Different - Exon numbering is discordant' and clinically_relevant_gene == True) or \
+        (comparison_status == 'Not comparable - Partial transcript annotation in GTF file' and clinically_relevant_gene == True and fix_contig_transcript_partial == False) or \
+        (comparison_status == 'Different - No. of exons or introns differ' and clinically_relevant_gene == True)
     '''
 
 def test_get_assembly_report_contigs(assembly_report: str, ASSEMBLY_REPORT_QUERY: str):
@@ -42,7 +45,9 @@ def test_get_grc_fixes_contigs(grc_fixes_assessment: str, GRC_FIXES_QUERY: str):
                                     query=GRC_FIXES_QUERY)
 
     assert isinstance(contigs, list)
-    assert len(contigs) == 22, f"Expected 1 contigs, got {len(contigs)}"
+    assert len(contigs) == 47, f"Expected 47 contigs, got {len(contigs)}"
 
     assert "chr13_ML143365v1_fix" in contigs, f"Expected 'chr13_ML143365v1_fix', but not found"
     assert "chr6_KZ208911v1_fix" in contigs, f"Expected 'chr6_KZ208911v1_fix', but not found"
+    assert "chr15_KI270905v1_alt" in contigs, f"Expected 'chr15_KI270905v1_alt', but not found"
+    assert "chr19_KI270866v1_alt" in contigs, f"Expected 'chr19_KI270866v1_alt', but not found"

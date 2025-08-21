@@ -22,11 +22,11 @@ process REMOVE_SECTIONS {
     tag "REMOVE_SECTIONS"
 
     input:
-    path gtf
+    path gtf   // Compressed GTF
     val pairs  // list of [contig, biotype] pairs
 
     output:
-    path "${gtf.simpleName}.filtered.gtf", emit: gtf
+    path "${gtf.simpleName}.filtered.gtf.gz", emit: gtf
 
     script:
     """
@@ -36,7 +36,9 @@ process REMOVE_SECTIONS {
     echo "Removing multiple contig-biotype pairs from GTF: ${pairs}"
 
     # Copy the input GTF to a temporary file for iterative filtering
-    cp ${gtf} temp.gtf
+    cp ${gtf} temp.gtf.gz
+
+    gunzip temp.gtf.gz
 
     # For each [contig, biotype] pair, filter out lines matching both criteria
     ${pairs.collect { pair -> 
@@ -49,6 +51,8 @@ process REMOVE_SECTIONS {
 
     # Rename the filtered GTF file to the final output
     mv temp.gtf ${gtf.simpleName}.filtered.gtf
+
+    bgzip ${gtf.simpleName}.filtered.gtf
     """
 }
 
@@ -56,17 +60,20 @@ process APPEND_GTFS {
     tag "APPEND_GTFS"
 
     input:
-    path gtf
-    val additional_gtfs  // List of additional GTF paths as strings
+    val appended_contigs  // Plain label
+    path gtf              // Compressed GTF
+    val additional_gtfs   // List of additional GTF paths as strings
 
     output:
-    path "${gtf.baseName}.appended.gtf", emit: gtf
+    path "${appended_contigs}.gtf.gz", emit: gtf
 
     script:
     """
     set -euo pipefail
 
     echo "Appending ${additional_gtfs.size()} additional GTF files to ${gtf}"
+
+    gunzip -c ${gtf} > temp.gtf
 
     # Check that all additional GTF files exist
     for f in ${additional_gtfs.join(' ')}; do
@@ -77,7 +84,13 @@ process APPEND_GTFS {
     done
 
     # Concatenate main GTF and all additional GTFs
-    cat ${gtf} ${additional_gtfs.join(' ')} > "${gtf.baseName}.appended.gtf"
+    cat temp.gtf ${additional_gtfs.join(' ')} > "${appended_contigs}.gtf"
+
+    # Compress appended gtf
+    bgzip ${appended_contigs}.gtf
+
+    # Remove temp gtf
+    rm temp.gtf
     """
 }
 
@@ -85,15 +98,18 @@ process CONVERT_ANNOTATION_REFSEQ_TO_UCSC {
     tag "CONVERT_GENOME_ANNOT_REFSEQ_TO_UCSC"
 
     input:
-    path gtf
+    path gtf             // Compressed GTF
     path assembly_report
 
     output:
-    path "${gtf.simpleName}_ucsc.gtf", emit: gtf
+    path "${gtf.simpleName}_ucsc.gtf.gz", emit: gtf
+    path "${gtf.simpleName}_ucsc.gtf.gz.tbi", emit: gtf_index
 
     script:
     """
     set -euo pipefail
+
+    gunzip -c ${gtf} > temp.gtf
 
     awk '
     BEGIN { FS=OFS="\t" }
@@ -112,18 +128,53 @@ process CONVERT_ANNOTATION_REFSEQ_TO_UCSC {
         if (\$1 in map) \$1 = map[\$1]
         print
     }
-    ' ${assembly_report} ${gtf} > ${gtf.simpleName}_ucsc.gtf
+    ' ${assembly_report} temp.gtf | bedtools sort > ${gtf.simpleName}_ucsc.gtf
+
+    echo "Removing temp file"
+    rm temp.gtf
+
+    echo "Compressing GTF file"
+    bgzip ${gtf.simpleName}_ucsc.gtf
+
+    echo "Creating index"
+    tabix ${gtf.simpleName}_ucsc.gtf.gz
     """
 }
 
 process SUBSET_GTF {
     tag "SUBSET_GTF"
+
+    input:
+    path gtf           // Compressed GTF
+    path gtf_index
+    val target_contigs
+
+    output:
+    path "subset.gtf.gz", emit: gtf
+    path "subset.gtf.gz.tbi", emit: gtf_index
+
+    script:
+    """
+    set -euo pipefail
+
+    echo "Filtering GTF for target contigs"
+    tabix ${gtf} ${target_contigs} > subset.gtf
+
+    echo "Compressing subset GTF"
+    bgzip subset.gtf
+
+    echo "Index GTF"
+    tabix subset.gtf.gz
+    """
+}
+
+process SORT_GTF {
+    tag "SORT_GTF"
     publishDir "${params.output_dir}", mode: 'copy'
 
     input:
-    path gtf
-    val target_contigs
     val final_output_prefix
+    path gtf                // Compressed GTF
 
     output:
     path "${final_output_prefix}_rna_cloud.gtf.gz", emit: gtf
@@ -133,14 +184,14 @@ process SUBSET_GTF {
     """
     set -euo pipefail
 
+    echo "Sorting GTF file"
+    /app/rnacloud_genome_reference/genome_build/scripts/gtf_sort.sh \
+      ${gtf} ${final_output_prefix}_rna_cloud.gtf
+
     echo "Compressing GTF file"
-    bedtools sort -i ${gtf} | bgzip -c > ${gtf}.gz
+    bgzip ${final_output_prefix}_rna_cloud.gtf
 
     echo "Indexing GTF file"
-    tabix ${gtf}.gz
-
-    echo "Filtering GTF for target contigs"
-    tabix ${gtf}.gz ${target_contigs} | bgzip -c > ${final_output_prefix}_rna_cloud.gtf.gz
     tabix ${final_output_prefix}_rna_cloud.gtf.gz
     """
 }

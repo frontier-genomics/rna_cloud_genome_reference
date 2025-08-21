@@ -3,32 +3,51 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-class ChromosomeConverter:
+class AssemblyReportParser:
     def __init__(self, assembly_report: str):
         self.assembly_report = assembly_report
+
+        self.regions = self._load_assembly_report()
+        self.contig_lengths = self.regions.set_index('UCSC-style-name')['Sequence-Length'].to_dict()
         self.refseq_to_ucsc_map = self._load_refseq_to_ucsc_map()
         self.ucsc_to_refseq_map = self._load_ucsc_to_refseq_map()
 
-    def _load_refseq_to_ucsc_map(self) -> dict:
-        # Load the RefSeq to UCSC map from the assembly report
-        logger.info(f"Loading RefSeq to UCSC map from {self.assembly_report}")
+    def _load_assembly_report(self) -> pd.DataFrame:
+        # Load the assembly report into a DataFrame
+        logger.debug(f"Loading assembly report from {self.assembly_report}")
         regions = pd.read_csv(self.assembly_report, 
                     sep='\t',
                     comment='#',
                     low_memory=False,
                     header=None,
                     names=['Sequence-Name','Sequence-Role','Assigned-Molecule','Assigned-Molecule-Location/Type','GenBank-Accn','Relationship','RefSeq-Accn','Assembly-Unit','Sequence-Length','UCSC-style-name'])
-        
-        chromosome_map = regions.set_index('RefSeq-Accn')['UCSC-style-name'].to_dict()
+        return regions
 
-        logger.info(f"Loaded chromosome map: {chromosome_map}")
+    def get_contig_range(self, ucsc_contig_name: str) -> tuple[int, int]:
+        # Get the start and end positions of a contig based on its UCSC style name
+        logger.debug(f"Getting contig ranges for UCSC contig name {ucsc_contig_name}")
+
+        if ucsc_contig_name not in self.contig_lengths:
+            logger.error(f"UCSC contig name {ucsc_contig_name} not found in assembly report")
+            raise ValueError(f"UCSC contig name {ucsc_contig_name} not found in assembly report")
+
+        start = 1 # 1-based
+        end = self.contig_lengths[ucsc_contig_name]
+        return start, end
+
+    def _load_refseq_to_ucsc_map(self) -> dict:
+        # Load the RefSeq to UCSC map from the assembly report
+        logger.debug(f"Loading RefSeq to UCSC map")
+        chromosome_map = self.regions.set_index('RefSeq-Accn')['UCSC-style-name'].to_dict()
+
+        logger.debug(f"Loaded chromosome map: {chromosome_map}")
         return chromosome_map
     
     def _load_ucsc_to_refseq_map(self) -> dict:
         # Create a reverse map from UCSC to RefSeq
-        logger.info("Creating UCSC to RefSeq map")
+        logger.debug("Creating UCSC to RefSeq map")
         ucsc_to_refseq_map = {v: k for k, v in self.refseq_to_ucsc_map.items()}
-        logger.info(f"Created UCSC to RefSeq map: {ucsc_to_refseq_map}")
+        logger.debug(f"Created UCSC to RefSeq map: {ucsc_to_refseq_map}")
         return ucsc_to_refseq_map
     
     def refseq_to_ucsc(self, refseq_id: str) -> str:

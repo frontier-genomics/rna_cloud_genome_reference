@@ -4,23 +4,10 @@ import logging
 import pandas as pd
 
 from rnacloud_genome_reference.common.gtf import GTFHandler
-from rnacloud_genome_reference.common.utils import ChromosomeConverter
+from rnacloud_genome_reference.common.utils import AssemblyReportParser
+from rnacloud_genome_reference.genome_build.common import ASSEMBLY_REPORT_QUERY, GRC_FIXES_QUERY
 
 logger = logging.getLogger(__name__)
-
-GRC_FIXES_QUERY = '''
-    (comparison_status == 'Different - Sequences differ' and clinically_relevant_gene == True) or \
-    (comparison_status == 'Different - Exon numbering is discordant' and clinically_relevant_gene == True) or \
-    (comparison_status == 'Not comparable - Partial transcript annotation in GTF file' and clinically_relevant_gene == True and fix_contig_transcript_partial == False) or \
-    (comparison_status == 'Different - No. of exons or introns differ' and clinically_relevant_gene == True)
-'''
-
-ASSEMBLY_REPORT_QUERY = '''
-    `Sequence-Role` == 'assembled-molecule' or \
-    `RefSeq-Accn` == 'NT_187388.1' or \
-    `RefSeq-Accn` == 'NT_167214.1' or \
-    `RefSeq-Accn` == 'NT_187633.1'
-'''
 
 def get_assembly_report_contigs(assembly_report: str, query: str) -> list[str]:
     df = pd.read_csv(assembly_report, 
@@ -46,9 +33,17 @@ def get_grc_fixes_contigs(grc_fixes_assessment: str, query: str) -> list[str]:
         logger.warning("No clinically relevant genes with discrepancies found in GRC fixes assessment.")
         return []
 
-    contigs = grc_filtered['alt_chr_ucsc'].unique().tolist()
+    # Both fix and primary contigs need to be added. There are a few instances where the fix contig
+    # is for a gene annotated on an alt contig e.g. chr19_KI270866v1_alt -> chr19_MU273386v1_fix (HG-2469, GPI)
+    contigs_fix = grc_filtered['alt_chr_ucsc'].unique().tolist()
+    logger.debug(f"Number of fix contigs: {len(contigs_fix)}")
+
+    contigs_primary = grc_filtered['chr_ucsc'].unique().tolist()
+    logger.debug(f"Number of primary contigs: {len(contigs_primary)}")
+
+    contigs_fix.extend(contigs_primary)
     
-    return sorted(set(contigs))
+    return sorted(set(contigs_fix))
 
 def get_target_contigs(assembly_report: str,
                        grc_fixes_assessment: str,
@@ -63,7 +58,10 @@ def get_target_contigs(assembly_report: str,
     contigs_set_1.extend(contigs_set_2)
     logger.debug(f"No. of contigs after merging: {len(contigs_set_1)}")
 
-    print(' '.join(contigs_set_1), end='')
+    unique_contigs = sorted(set(contigs_set_1))
+    logger.debug(f"No. of unique contigs after merging: {len(unique_contigs)}")
+
+    print(' '.join(unique_contigs), end='')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Generate contigs to be extracts from FASTA and GTF.")
