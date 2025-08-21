@@ -2,6 +2,7 @@ nextflow.enable.dsl=2
 
 process VALIDATE_GENOME_ANNOTATION {
     tag "VALIDATE_GENOME_ANNOTATION"
+    publishDir "${params.output_dir}", mode: 'copy'
 
     input:
     path fasta

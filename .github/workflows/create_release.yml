@@ -77,5 +77,6 @@ jobs:
             output/*.gtf.gz*
             output/md5checksums.txt
             output/*.bed
+            output/validation_report.txt
           generate_release_notes: true
           token: ${{ github.token }}
