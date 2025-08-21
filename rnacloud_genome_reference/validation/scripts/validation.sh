@@ -31,7 +31,7 @@ GTF_CONTIGS=$(mktemp --suffix=.txt)
 FASTA_CONTIGS=$(mktemp --suffix=.txt)
 
 tabix -l "$GTF" | sort > "$GTF_CONTIGS"
-cut -f 1 "$FASTA_INDEX" | grep -v 'chrEBV' | sort > "$FASTA_CONTIGS"
+cut -f 1 "$FASTA_INDEX" | sort > "$FASTA_CONTIGS"
 
 diff "$GTF_CONTIGS" "$FASTA_CONTIGS"
 
@@ -46,12 +46,13 @@ rm -f "$GTF_CONTIGS" "$FASTA_CONTIGS"
 
 echo 🕵️‍♀️ Check that EBV contig is present in the FASTA file...
 
-EBV_CONTIG_COUNT=$(cut -f 1 "$FASTA_INDEX" | grep 'chrEBV' | wc -l)
+EBV_FASTA_CONTIG_COUNT=$(cut -f 1 "$FASTA_INDEX" | grep 'chrEBV' | wc -l)
+EBV_GTF_CONTIG_COUNT=$(tabix -l "$GTF" | grep 'chrEBV' | wc -l)
 
-if [ "$EBV_CONTIG_COUNT" -eq 1 ]; then
-  echo ✅ EBV contig is present in the FASTA file!
+if [ "$EBV_FASTA_CONTIG_COUNT" -eq 1 ] && [ "$EBV_GTF_CONTIG_COUNT" -eq 1 ]; then
+  echo ✅ EBV contig is present in the FASTA and GTF files!
 else
-  echo ⛔️ EBV contig is not present in the FASTA file or contains multiple entries \(No. of EBV contigs: ${EBV_CONTIG_COUNT}\)!
+  echo ⛔️ EBV contig is not present in the FASTA or GTF file or contains multiple entries \(FASTA: ${EBV_FASTA_CONTIG_COUNT}, GTF: ${EBV_GTF_CONTIG_COUNT}\)!
   VALIDATION_STATUS=1
 fi
 
