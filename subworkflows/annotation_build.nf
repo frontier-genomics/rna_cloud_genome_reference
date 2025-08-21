@@ -17,16 +17,12 @@ workflow BUILD_ANNOTATION_REFERENCE {
     grc_fixes_assessment
 
     main:
-    DECOMPRESS_GTF(
-        gtf
-    )
-
     DOWNLOAD_EBV_GTF(
         params.genome.ebv_annotation_url
     )
 
     REMOVE_SECTIONS(
-        DECOMPRESS_GTF.out.gtf,
+        gtf,
         Channel.value([["NC_000021.9", "rRNA"],
                        ["NT_187388.1", "rRNA"],
                        ["NT_167214.1", "rRNA"]])
@@ -58,6 +54,7 @@ workflow BUILD_ANNOTATION_REFERENCE {
 
     SUBSET_GTF(
         CONVERT_ANNOTATION_REFSEQ_TO_UCSC.out.gtf,
+        CONVERT_ANNOTATION_REFSEQ_TO_UCSC.out.gtf_index,
         target_contigs
     )
 

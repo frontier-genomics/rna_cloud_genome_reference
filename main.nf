@@ -36,17 +36,17 @@ workflow {
         DOWNLOAD_GENOME_AND_REFERENCES.out.assembly_report
     )
     
-    BUILD_GENOME_REFERENCE(
-        DOWNLOAD_GENOME_AND_REFERENCES.out.fasta,
-        DOWNLOAD_GENOME_AND_REFERENCES.out.fasta_fai_index,
-        DOWNLOAD_GENOME_AND_REFERENCES.out.fasta_gzi_index,
-        DOWNLOAD_GENOME_AND_REFERENCES.out.gtf,
-        DOWNLOAD_GENOME_AND_REFERENCES.out.gtf_index,
-        DOWNLOAD_GENOME_AND_REFERENCES.out.assembly_report,
-        GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment,
-        DOWNLOAD_GENOME_AND_REFERENCES.out.cen_par_mask_regions,
-        DOWNLOAD_GENOME_AND_REFERENCES.out.ebv_fasta
-    )
+    // BUILD_GENOME_REFERENCE(
+    //     DOWNLOAD_GENOME_AND_REFERENCES.out.fasta,
+    //     DOWNLOAD_GENOME_AND_REFERENCES.out.fasta_fai_index,
+    //     DOWNLOAD_GENOME_AND_REFERENCES.out.fasta_gzi_index,
+    //     DOWNLOAD_GENOME_AND_REFERENCES.out.gtf,
+    //     DOWNLOAD_GENOME_AND_REFERENCES.out.gtf_index,
+    //     DOWNLOAD_GENOME_AND_REFERENCES.out.assembly_report,
+    //     GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment,
+    //     DOWNLOAD_GENOME_AND_REFERENCES.out.cen_par_mask_regions,
+    //     DOWNLOAD_GENOME_AND_REFERENCES.out.ebv_fasta
+    // )
 
     BUILD_ANNOTATION_REFERENCE(
         DOWNLOAD_GENOME_AND_REFERENCES.out.gtf,
@@ -54,25 +54,25 @@ workflow {
         GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment
     )
 
-    def final_outputs = GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment.merge(
-        SPLICE_SITE_GNOMAD_FREQ.out.splice_site_pop_freq
-        , BUILD_GENOME_REFERENCE.out.fasta
-        , BUILD_GENOME_REFERENCE.out.fasta_fai_index
-        , BUILD_GENOME_REFERENCE.out.fasta_gzi_index
-        , BUILD_GENOME_REFERENCE.out.mask_regions_bed
-        , BUILD_GENOME_REFERENCE.out.unmask_regions_bed
-        , BUILD_ANNOTATION_REFERENCE.out.gtf
-        , BUILD_ANNOTATION_REFERENCE.out.gtf_index
-    )
+    // def final_outputs = GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment.merge(
+    //     SPLICE_SITE_GNOMAD_FREQ.out.splice_site_pop_freq
+    //     , BUILD_GENOME_REFERENCE.out.fasta
+    //     , BUILD_GENOME_REFERENCE.out.fasta_fai_index
+    //     , BUILD_GENOME_REFERENCE.out.fasta_gzi_index
+    //     , BUILD_GENOME_REFERENCE.out.mask_regions_bed
+    //     , BUILD_GENOME_REFERENCE.out.unmask_regions_bed
+    //     , BUILD_ANNOTATION_REFERENCE.out.gtf
+    //     , BUILD_ANNOTATION_REFERENCE.out.gtf_index
+    // )
 
-    VALIDATE_GENOME_ANNOTATION(
-        BUILD_GENOME_REFERENCE.out.fasta,
-        BUILD_GENOME_REFERENCE.out.fasta_fai_index,
-        BUILD_ANNOTATION_REFERENCE.out.gtf,
-        BUILD_ANNOTATION_REFERENCE.out.gtf_index,
-        BUILD_GENOME_REFERENCE.out.mask_regions_bed,
-        BUILD_GENOME_REFERENCE.out.unmask_regions_bed
-    )
+    // VALIDATE_GENOME_ANNOTATION(
+    //     BUILD_GENOME_REFERENCE.out.fasta,
+    //     BUILD_GENOME_REFERENCE.out.fasta_fai_index,
+    //     BUILD_ANNOTATION_REFERENCE.out.gtf,
+    //     BUILD_ANNOTATION_REFERENCE.out.gtf_index,
+    //     BUILD_GENOME_REFERENCE.out.mask_regions_bed,
+    //     BUILD_GENOME_REFERENCE.out.unmask_regions_bed
+    // )
 
-    CALCULATE_MD5_SUMMARY(final_outputs)
+    // CALCULATE_MD5_SUMMARY(final_outputs)
 }

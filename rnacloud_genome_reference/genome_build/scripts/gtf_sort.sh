@@ -4,7 +4,7 @@
 # Sort and index a compressed GTF by genomic position with feature priority
 # -----------------------------------------------------------------------------
 # This script:
-#   1) Starts off with an uncompressed GTF (.gtf)
+#   1) Decompresses a gzip-compressed GTF (.gtf.gz)
 #   2) Appends a temporary sort key (column 10) encoding feature priority:
 #        gene(1) < transcript(2) < exon(3) < CDS(4) < start_codon(5) < stop_codon(6)
 #   3) Sorts by: chromosome (V-sort), start position (numeric), feature priority
@@ -47,7 +47,7 @@ if [ $# -ne 2 ]; then
 fi
 
 # Positional arguments
-GTF="$1"          # Path to input GTF
+GTF="$1"          # Path to input GTF (gzip-compressed)
 SORTED_GTF="$2"   # Path to output bgzipped, sorted GTF
 
 # -----------------------------------------------------------------------------
@@ -68,7 +68,7 @@ SORTED_GTF="$2"   # Path to output bgzipped, sorted GTF
 #   -f1-9       : drop the temporary 10th column and keep standard 9 GTF fields
 # bgzip:
 #   Compress to BGZF format, required by tabix
-cat "${GTF}" | \
+gunzip -c "${GTF}" | \
 awk 'BEGIN {OFS="\t"}
      $3 == "gene"        {print $0, "1"}
      $3 == "transcript"  {print $0, "2"}
