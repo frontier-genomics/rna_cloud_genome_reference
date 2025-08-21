@@ -198,7 +198,7 @@ process REDUNDANT_5S_MASK_REGIONS {
 
 process MASK_FASTA {
     tag "MASK_FASTA"
-    publishDir "${params.output_dir}", mode: 'copy', pattern: "mask_regions_bed"
+    publishDir "${params.output_dir}", mode: 'copy', pattern: "masked_regions.bed"
 
     input:
     path grc_fixes_and_assembly_mask_regions_bed
