@@ -1,6 +1,7 @@
 name: pull_request
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - main
@@ -10,7 +11,7 @@ on:
       - docs/**
       - README.md
       - LICENSE
-      - .giitignore
+      - .gitignore
       - .github/workflows/**
 
 jobs:
@@ -66,3 +67,37 @@ jobs:
           path: output/validation_report.txt
           compression-level: 0
           retention-days: 7
+
+      - name: Compare md5checksums with latest release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # get latest release tag
+          tag="$(gh api "repos/$REPO/releases/latest" --jq .tag_name)"
+          echo "Latest release tag: $tag"
+
+          # fetch output/md5checksums.txt from that tag in the repo (works for private repos)
+          tmpfile="$(mktemp)"
+          if ! gh api "repos/$REPO/contents/md5checksums.txt?ref=$tag" --jq .content | base64 -d > "$tmpfile" 2>/dev/null; then
+            echo "::error No md5checksums.txt found at tag $tag."
+            exit 1
+          fi
+
+          echo "📑 Comparing files:"
+          echo "Generated file (this run):"
+          cat output/md5checksums.txt
+          echo "--------------------------"
+          echo "Release file ($tag):"
+          cat "$tmpfile"
+          echo "=========================="
+
+          # compare with the one produced in this run
+          if cmp -s "output/md5checksums.txt" "$tmpfile"; then
+            echo "::notice= md5checksums match latest release ($tag)."
+          else
+            echo "::notice≠ md5checksums differ from latest release ($tag):"
+            diff -u "$tmpfile" "output/md5checksums.txt" || true
+          fi
