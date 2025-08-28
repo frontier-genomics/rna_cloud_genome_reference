@@ -52,7 +52,7 @@ pytz==2025.2
 pyzmq==27.0.0
 requests==2.32.4
 requests-toolbelt==1.0.0
-setuptools==69.0.3
+setuptools==78.1.1
 simplejson==3.20.1
 six==1.17.0
 smmap==5.0.1
