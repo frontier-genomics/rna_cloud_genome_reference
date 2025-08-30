@@ -22,8 +22,6 @@ jobs:
         with:
           path: data/
           key: ${{ hashFiles('conf/sources.json') }}
-          restore-keys: |
-            ${{ hashFiles('conf/sources.json') }}
 
       - name: Determine new version
         id: new_version
@@ -48,7 +46,7 @@ jobs:
         uses: actions/cache/save@v4
         id: cache-save
         with:
-          path: data/**
+          path: data/
           key: ${{ hashFiles('conf/sources.json') }}
 
       - name: Upload DAG

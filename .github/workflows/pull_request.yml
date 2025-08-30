@@ -33,8 +33,6 @@ jobs:
         with:
           path: data/
           key: ${{ hashFiles('conf/sources.json') }}
-          restore-keys: |
-            ${{ hashFiles('conf/sources.json') }}
 
       - name: Build Docker Image
         run: docker build -t $IMAGE_NAME .
@@ -49,7 +47,7 @@ jobs:
         uses: actions/cache/save@v4
         id: cache-save
         with:
-          path: data/**
+          path: data/
           key: ${{ hashFiles('conf/sources.json') }}
 
       - name: Upload DAG
