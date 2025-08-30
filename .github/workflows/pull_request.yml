@@ -101,8 +101,8 @@ jobs:
           tag="$(gh release list --json isLatest,tagName -q '.[] | select(.isLatest == true) | .tagName')"
           echo "Latest release tag: $tag"
 
-          # fetch output/md5checksums.txt from that tag in the repo (works for private repos)
-          tmpfile="$(mktemp)"
+          # fetch md5checksums.txt from that tag in the repo (works for private repos)
+          tmpfile="/tmp/md5checksums.txt"
 
           echo "⬇️ Downloading md5checksums.txt from release $tag ..."
           gh release download $tag -p 'md5checksums.txt' -O $tmpfile
