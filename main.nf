@@ -8,6 +8,7 @@ include { BUILD_GENOME_REFERENCE } from './subworkflows/genome_build.nf'
 include { BUILD_ANNOTATION_REFERENCE } from './subworkflows/annotation_build.nf'
 include { CALCULATE_MD5_SUMMARY } from './modules/common.nf'
 include { VALIDATE_GENOME_ANNOTATION } from './modules/validate.nf'
+include { GENOME_AND_ANNOTATION_REPORT } from './modules/validate.nf'
 
 workflow {
     DOWNLOAD_GENOME_AND_REFERENCES()
@@ -54,6 +55,30 @@ workflow {
         GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment
     )
 
+    VALIDATE_GENOME_ANNOTATION(
+        BUILD_GENOME_REFERENCE.out.fasta,
+        BUILD_GENOME_REFERENCE.out.fasta_fai_index,
+        BUILD_ANNOTATION_REFERENCE.out.gtf,
+        BUILD_ANNOTATION_REFERENCE.out.gtf_index,
+        BUILD_GENOME_REFERENCE.out.mask_regions_bed,
+        BUILD_GENOME_REFERENCE.out.unmask_regions_bed
+    )
+
+    genome_and_annotation_version = System.getenv("GENOME_AND_ANNOTATION_VERSION") ?: "0.0.0"
+
+    GENOME_AND_ANNOTATION_REPORT(
+        BUILD_GENOME_REFERENCE.out.fasta,
+        BUILD_GENOME_REFERENCE.out.fasta_gzi_index,
+        BUILD_GENOME_REFERENCE.out.fasta_fai_index,
+        BUILD_ANNOTATION_REFERENCE.out.gtf,
+        BUILD_ANNOTATION_REFERENCE.out.gtf_index,
+        DOWNLOAD_GENOME_AND_REFERENCES.out.assembly_report,
+        DOWNLOAD_GENOME_AND_REFERENCES.out.cen_par_mask_regions,
+        GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment,
+        "${projectDir}/conf/sources.json",
+        genome_and_annotation_version
+    )
+
     def final_outputs = GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment.merge(
         SPLICE_SITE_GNOMAD_FREQ.out.splice_site_pop_freq
         , BUILD_GENOME_REFERENCE.out.fasta
@@ -63,15 +88,6 @@ workflow {
         , BUILD_GENOME_REFERENCE.out.unmask_regions_bed
         , BUILD_ANNOTATION_REFERENCE.out.gtf
         , BUILD_ANNOTATION_REFERENCE.out.gtf_index
-    )
-
-    VALIDATE_GENOME_ANNOTATION(
-        BUILD_GENOME_REFERENCE.out.fasta,
-        BUILD_GENOME_REFERENCE.out.fasta_fai_index,
-        BUILD_ANNOTATION_REFERENCE.out.gtf,
-        BUILD_ANNOTATION_REFERENCE.out.gtf_index,
-        BUILD_GENOME_REFERENCE.out.mask_regions_bed,
-        BUILD_GENOME_REFERENCE.out.unmask_regions_bed
     )
 
     CALCULATE_MD5_SUMMARY(final_outputs)
