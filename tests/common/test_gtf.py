@@ -1,3 +1,4 @@
+from collections import Counter
 from rnacloud_genome_reference.common.gtf import GTFHandler, SpliceJunctionPosition
 from rnacloud_genome_reference.common.gtf import Exon, Intron
 import pytest
@@ -6,6 +7,10 @@ class TestGTFHandler:
     @pytest.fixture
     def gtf_hander(self):
         return GTFHandler('tests/fixtures/GCF_000001405.40_GRCh38.p14_genomic.sorted.gtf.gz')
+    
+    @pytest.fixture
+    def gtf_hander_rna_cloud(self):
+        return GTFHandler('tests/fixtures/GCF_000001405.40_GRCh38.p14_rna_cloud_chr1_X.gtf.gz')
 
     @pytest.mark.parametrize("chromosome, start, end, gene_id, mane, expected", [
         ('NC_000001.11', 65419, 71585, 79501, True, 'NM_001005484.2'),
@@ -15,6 +20,63 @@ class TestGTFHandler:
     def test_get_transcript_for_gene(self, gtf_hander: GTFHandler, chromosome: str, start: int, end: int, gene_id: int, mane: bool, expected: str):
         response = gtf_hander.get_transcript_for_gene(chromosome, start, end, gene_id, mane)
         assert response == expected
+
+    def test_get_feature_counts(self, gtf_hander_rna_cloud: GTFHandler):
+        response = gtf_hander_rna_cloud.get_feature_counts()
+        assert response is not None
+        assert isinstance(response, Counter)
+
+        assert len(response) == 6
+        
+        assert 'CDS' in response.keys()
+        assert 'exon' in response.keys()
+        assert 'gene' in response.keys()
+        assert 'start_codon' in response.keys()
+        assert 'stop_codon' in response.keys()
+        assert 'transcript' in response.keys()
+
+        assert response['CDS'] == 216746
+        assert response['exon'] == 266758
+        assert response['gene'] == 5781
+        assert response['start_codon'] == 17191
+        assert response['stop_codon'] == 17169
+        assert response['transcript'] == 23050
+
+    def test_get_gene_biotype_counts(self, gtf_hander_rna_cloud: GTFHandler):
+        response = gtf_hander_rna_cloud.get_gene_biotype_counts()
+        assert response is not None
+        assert isinstance(response, Counter)
+
+        assert len(response) == 14
+
+        assert 'lncRNA' in response.keys()
+        assert 'miRNA' in response.keys()
+        assert 'transcribed_pseudogene' in response.keys()
+        assert 'snoRNA' in response.keys()
+        assert 'pseudogene' in response.keys()
+        assert 'tRNA' in response.keys()
+        assert 'snRNA' in response.keys()
+        assert 'rRNA' in response.keys()
+        assert 'ncRNA' in response.keys()
+        assert 'antisense_RNA' in response.keys()
+        assert 'misc_RNA' in response.keys()
+        assert 'V_segment' in response.keys()
+        assert 'ncRNA_pseudogene' in response.keys()
+
+        assert response['protein_coding'] == 2896
+        assert response['lncRNA'] == 1960
+        assert response['miRNA'] == 275
+        assert response['transcribed_pseudogene'] == 180
+        assert response['snoRNA'] == 156
+        assert response['pseudogene'] == 143
+        assert response['tRNA'] == 89
+        assert response['snRNA'] == 41
+        assert response['rRNA'] == 17
+        assert response['ncRNA'] == 15
+        assert response['antisense_RNA'] == 5
+        assert response['misc_RNA'] == 2
+        assert response['V_segment'] == 1
+        assert response['ncRNA_pseudogene'] == 1
 
     @pytest.mark.parametrize("chromosome, start, end, transcript_id, expected", [
         ('NC_000001.11', 65419, 71585, "NM_001005484.2", [

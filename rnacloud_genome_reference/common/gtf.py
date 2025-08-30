@@ -1,3 +1,4 @@
+from collections import Counter
 import logging
 import re
 import gzip
@@ -53,6 +54,27 @@ class GTFHandler:
         except Exception as e:
             logger.error(f"Error opening GTF file {gtf_file_path}: {e}")
             raise
+
+    def get_feature_counts(self) -> Counter:
+        feature_counts = Counter()
+
+        for record in self.tbx.fetch(multiple_iterators=True, parser=pysam.asGTF()):
+            feature_counts[record['feature']] += 1
+
+        return feature_counts
+
+    def get_gene_biotype_counts(self) -> Counter:
+        gene_biotype_counts = Counter()
+
+        for record in self.tbx.fetch(multiple_iterators=True, parser=pysam.asGTF()):
+            if record['feature'] == 'gene':
+                gene_biotype = re.search(r'.*gene_biotype \"(.+?)\";.*', record['attributes'])
+                if gene_biotype:
+                    gene_biotype_counts[gene_biotype.group(1)] += 1
+                else:
+                    raise ValueError(f"No gene_biotype found in attributes: {record['attributes']}")
+
+        return gene_biotype_counts
 
     def get_transcript_for_gene(self, chromosome: str, start: int, end: int, entrez_gene_id: int, mane: bool = True) -> str | None:
         logger.info(f"Obtaining transcript for Entrez Gene ID: {entrez_gene_id} at location {chromosome}:{start}-{end} (MANE: {mane})")
