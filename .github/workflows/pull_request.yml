@@ -97,24 +97,28 @@ jobs:
         run: |
           set -euo pipefail
 
-          # get latest release tag
-          tag="$(gh api "repos/$REPO/releases/latest" --jq .tag_name)"
+          echo "🏷️ Get latest release tag"
+          tag="$(gh release list --json isLatest,tagName -q '.[] | select(.isLatest == true) | .tagName')"
           echo "Latest release tag: $tag"
 
           # fetch output/md5checksums.txt from that tag in the repo (works for private repos)
           tmpfile="$(mktemp)"
-          if ! gh api "repos/$REPO/contents/md5checksums.txt?ref=$tag" --jq .content | base64 -d > "$tmpfile" 2>/dev/null; then
+
+          echo "⬇️ Downloading md5checksums.txt from release $tag ..."
+          gh release download $tag -p 'md5checksums.txt' -O $tmpfile
+
+          if [ ! -f $tmpfile ]; then
             echo "::error No md5checksums.txt found at tag $tag."
             exit 1
           fi
 
-          echo "📑 Comparing files:"
-          echo "Generated file (this run):"
+          echo "🔎 Comparing files:"
+          echo "📃 Generated file (this run):"
           cat output/md5checksums.txt
           echo "--------------------------"
-          echo "Release file ($tag):"
+          echo "📃 Release file ($tag):"
           cat "$tmpfile"
-          echo "=========================="
+          echo "--------------------------"
 
           # compare with the one produced in this run
           if cmp -s "output/md5checksums.txt" "$tmpfile"; then
