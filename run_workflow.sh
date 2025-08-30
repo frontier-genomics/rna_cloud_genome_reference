@@ -18,4 +18,5 @@ docker run \
   -v $(pwd)/reference:/app/reference \
   rnacloud_runner main.nf -with-dag /app/output/dag.mmd \
                           -with-report /app/output/report.html \
-                          -with-timeline /app/output/timeline.html
+                          -with-timeline /app/output/timeline.html \
+                          -params-file /app/conf/sources.json
