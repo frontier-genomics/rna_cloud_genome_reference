@@ -42,7 +42,7 @@ jobs:
         env:
           GENOME_AND_ANNOTATION_VERSION: ${{ steps.new_version.outputs.tag }}
 
-      - name: save source data files for next use
+      - name: Save source data files for next use
         uses: actions/cache/save@v4
         id: cache-save
         if: steps.cache-restore.outputs.cache-hit != 'true'

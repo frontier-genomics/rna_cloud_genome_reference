@@ -34,6 +34,14 @@ jobs:
           path: data/
           key: ${{ hashFiles('conf/sources.json') }}
 
+      - name: Determine new version
+        id: new_version
+        uses: anothrNick/github-tag-action@1.75.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+          DRY_RUN: true
+
       - name: Build Docker Image
         run: docker build -t $IMAGE_NAME .
 
@@ -42,8 +50,10 @@ jobs:
 
       - name: Run workflow
         run: ./run_workflow.sh
+        env:
+          GENOME_AND_ANNOTATION_VERSION: ${{ steps.new_version.outputs.tag }}
 
-      - name: save source data files for next use
+      - name: Save source data files for next use
         uses: actions/cache/save@v4
         id: cache-save
         if: steps.cache-restore.outputs.cache-hit != 'true'
@@ -95,6 +105,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
+          GENOME_AND_ANNOTATION_VERSION: ${{ steps.new_version.outputs.tag }}
         run: |
           set -euo pipefail
 
@@ -114,6 +125,7 @@ jobs:
           fi
 
           echo "🔎 Comparing files:"
+          echo "--------------------------"
           echo "📃 Generated file (this run):"
           cat output/md5checksums.txt
           echo "--------------------------"
@@ -123,8 +135,8 @@ jobs:
 
           # compare with the one produced in this run
           if cmp -s "output/md5checksums.txt" "$tmpfile"; then
-            echo "::notice::= md5checksums match latest release ($tag)."
+            echo "::notice::= md5checksums for candidate release ${GENOME_AND_ANNOTATION_VERSION} matches the latest release ($tag)."
           else
-            echo "::notice::≠ md5checksums differ from latest release ($tag):"
-            diff -u "$tmpfile" "output/md5checksums.txt"
+            echo "::notice::≠ md5checksums for candidate release ${GENOME_AND_ANNOTATION_VERSION} differs from the latest release ($tag):"
+            diff -u "$tmpfile" "output/md5checksums.txt" || true
           fi
