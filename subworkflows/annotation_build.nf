@@ -28,12 +28,14 @@ workflow BUILD_ANNOTATION_REFERENCE {
                        ["NT_167214.1", "rRNA"]])
     )
 
+    def rRNA_gtf_paths = [params.rRNA.NC_000021,
+                          params.rRNA.NT_187388,
+                          params.rRNA.NT_167214].collect { it -> "${projectDir}/${it}" }
+
     APPEND_RIBOSOMAL_RNA_GTFS(
         "rRNA",
         REMOVE_SECTIONS.out.gtf,
-        Channel.value([params.rRNA.NC_000021,
-                       params.rRNA.NT_187388,
-                       params.rRNA.NT_167214])
+        Channel.value(rRNA_gtf_paths)
     )
 
     CONVERT_ANNOTATION_REFSEQ_TO_UCSC(

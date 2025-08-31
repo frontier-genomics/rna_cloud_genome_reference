@@ -1,0 +1,27 @@
+{
+    "genome": {
+        "provider": "NCBI Refseq",
+        "fasta_url": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GCF_000001405.40_GRCh38.p14_genomic.fna.gz",
+        "annotation_url": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GCF_000001405.40_GRCh38.p14_genomic.gtf.gz",
+        "assembly_report": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GCF_000001405.40_GRCh38.p14_assembly_report.txt",
+        "assembly_report_comment_lines": 63,
+        "cen_par_mask_regions": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GRCh38_major_release_seqs_for_alignment_pipelines/unmasked_cognates_of_masked_CEN_PAR.txt",
+        "no_alt_fasta_url": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GRCh38_major_release_seqs_for_alignment_pipelines/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz",
+        "ebv_annotation_url": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/402/265/GCF_002402265.1_ASM240226v1/GCF_002402265.1_ASM240226v1_genomic.gtf.gz"
+    },
+    "reference": {
+        "grc_fixes": "https://github.com/kidsneuro-lab/grc_fixes_monitoring/releases/download/0.0.1/grc_fixes.tsv",
+        "clinically_relevant_genes": "https://github.com/frontier-genomics/clinically_relevant_genes/releases/download/1.0.2/results.tsv"
+    },
+    "rRNA": {
+        "NC_000021": "reference/rRNA/NC_000021.9_45S.gtf",
+        "NT_167214": "reference/rRNA/NT_167214.1.gtf",
+        "NT_187388": "reference/rRNA/NT_187388.1.gtf"
+    },
+    "gnomad": {
+        "reference": "data/gnomad/GRCh38/gnomad_r4_freq.tsv.gz",
+        "freq": 0.1,
+        "hemizygote_count": 100,
+        "homozygote_count": 100
+    }
+}

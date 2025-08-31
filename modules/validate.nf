@@ -28,3 +28,46 @@ process VALIDATE_GENOME_ANNOTATION {
       ${unmasked_regions_bed} | tee validation_report.txt
     """
 }
+
+process GENOME_AND_ANNOTATION_REPORT {
+    tag "GENOME_AND_ANNOTATION_REPORT"
+    publishDir "${params.output_dir}", mode: 'copy'
+
+    input:
+    // Required genome + indices
+    path fasta                                   // .fasta.gz
+    path fasta_gzi                               // .fasta.gz.gzi
+    path fasta_fai                               // .fasta.gz.fai
+
+    // Annotation + index
+    path gtf                                     // .gtf.gz
+    path gtf_index                               // .gtf.gz.tbi
+
+    // References & metadata
+    path assembly_report
+    path cen_par_regions
+    path grc_fixes_summary
+    path config_json                             // conf/sources.json
+
+    // Genome and annotation version
+    val version
+
+    output:
+    path 'genome_and_annotation_report.md', emit: report
+
+    script:
+    def genome_and_annotation_version = version ?: "0.0.0"
+    """
+    set -euo pipefail
+
+    python -m rnacloud_genome_reference.validation.report \
+      --fasta ${fasta} \
+      --gtf ${gtf} \
+      --assembly-report ${assembly_report} \
+      --cen-par-regions ${cen_par_regions} \
+      --grc-fixes-summary ${grc_fixes_summary} \
+      --config ${config_json} \
+      --version ${genome_and_annotation_version} \
+      --out genome_and_annotation_report.md
+    """
+}

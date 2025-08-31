@@ -26,7 +26,7 @@ workflow SPLICE_SITE_GNOMAD_FREQ {
     )
 
     OET_SPLICE_SITE_GNOMAD_FREQ(
-        params.gnomad.reference,
+        "${projectDir}/${params.gnomad.reference}",
         params.gnomad.freq,
         params.gnomad.hemizygote_count,
         params.gnomad.homozygote_count,

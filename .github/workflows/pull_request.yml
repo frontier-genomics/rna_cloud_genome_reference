@@ -27,6 +27,21 @@ jobs:
           show-progress: 'false'
           lfs: 'true'
 
+      - name: Restore source data files if available
+        uses: actions/cache/restore@v4
+        id: cache-restore
+        with:
+          path: data/
+          key: ${{ hashFiles('conf/sources.json') }}
+
+      - name: Determine new version
+        id: new_version
+        uses: anothrNick/github-tag-action@1.75.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+          DRY_RUN: true
+
       - name: Build Docker Image
         run: docker build -t $IMAGE_NAME .
 
@@ -35,6 +50,16 @@ jobs:
 
       - name: Run workflow
         run: ./run_workflow.sh
+        env:
+          GENOME_AND_ANNOTATION_VERSION: ${{ steps.new_version.outputs.tag }}
+
+      - name: Save source data files for next use
+        uses: actions/cache/save@v4
+        id: cache-save
+        if: steps.cache-restore.outputs.cache-hit != 'true'
+        with:
+          path: data/
+          key: ${{ hashFiles('conf/sources.json') }}
 
       - name: Upload DAG
         uses: actions/upload-artifact@v4
@@ -68,36 +93,50 @@ jobs:
           compression-level: 0
           retention-days: 7
 
+      - name: Upload genome build report
+        uses: actions/upload-artifact@v4
+        with:
+          name: genome_and_annotation_report.md
+          path: output/genome_and_annotation_report.md
+          compression-level: 0
+          retention-days: 7
+
       - name: Compare md5checksums with latest release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
+          GENOME_AND_ANNOTATION_VERSION: ${{ steps.new_version.outputs.tag }}
         run: |
           set -euo pipefail
 
-          # get latest release tag
-          tag="$(gh api "repos/$REPO/releases/latest" --jq .tag_name)"
+          echo "🏷️ Get latest release tag"
+          tag="$(gh release list --json isLatest,tagName -q '.[] | select(.isLatest == true) | .tagName')"
           echo "Latest release tag: $tag"
 
-          # fetch output/md5checksums.txt from that tag in the repo (works for private repos)
-          tmpfile="$(mktemp)"
-          if ! gh api "repos/$REPO/contents/md5checksums.txt?ref=$tag" --jq .content | base64 -d > "$tmpfile" 2>/dev/null; then
-            echo "::error No md5checksums.txt found at tag $tag."
+          # fetch md5checksums.txt from that tag in the repo (works for private repos)
+          tmpfile="/tmp/md5checksums.txt"
+
+          echo "⬇️ Downloading md5checksums.txt from release $tag ..."
+          gh release download $tag -p 'md5checksums.txt' -O $tmpfile
+
+          if [ ! -f $tmpfile ]; then
+            echo "::error::No md5checksums.txt found at tag $tag."
             exit 1
           fi
 
-          echo "📑 Comparing files:"
-          echo "Generated file (this run):"
+          echo "🔎 Comparing files:"
+          echo "--------------------------"
+          echo "📃 Generated file (this run):"
           cat output/md5checksums.txt
           echo "--------------------------"
-          echo "Release file ($tag):"
+          echo "📃 Release file ($tag):"
           cat "$tmpfile"
-          echo "=========================="
+          echo "--------------------------"
 
           # compare with the one produced in this run
           if cmp -s "output/md5checksums.txt" "$tmpfile"; then
-            echo "::notice= md5checksums match latest release ($tag)."
+            echo "::notice::= md5checksums for candidate release ${GENOME_AND_ANNOTATION_VERSION} matches the latest release ($tag)."
           else
-            echo "::notice≠ md5checksums differ from latest release ($tag):"
+            echo "::notice::≠ md5checksums for candidate release ${GENOME_AND_ANNOTATION_VERSION} differs from the latest release ($tag):"
             diff -u "$tmpfile" "output/md5checksums.txt" || true
           fi

@@ -143,6 +143,7 @@ process OET_SPLICE_SITE_GNOMAD_FREQ {
         SELECT *
         FROM splice_site_pop_freq
         WHERE af > 0.1 OR homozygote_count > 100 OR hemizygote_count > 100
+        ORDER BY chrom, pos, entrez_gene_id, ref, alt
     )
     TO "splice_site_pop_freq.tsv"
     (FORMAT CSV, DELIMITER '\t', HEADER true);
