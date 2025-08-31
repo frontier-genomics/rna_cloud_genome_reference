@@ -7,10 +7,14 @@ echo "----------------------------------------------------------------------"
 
 echo "Current folder: $(pwd)"
 
+GENOME_AND_ANNOTATION_VERSION=${GENOME_AND_ANNOTATION_VERSION:-"0.0.0"}
+echo "Genome and annotation version: $GENOME_AND_ANNOTATION_VERSION"
+
 docker run \
   --rm \
   --name rnacloud_runner \
   --entrypoint nextflow \
+  -e GENOME_AND_ANNOTATION_VERSION=$GENOME_AND_ANNOTATION_VERSION \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/temp:/app/temp \
   -v $(pwd)/output:/app/output \

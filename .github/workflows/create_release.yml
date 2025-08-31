@@ -45,6 +45,7 @@ jobs:
       - name: save source data files for next use
         uses: actions/cache/save@v4
         id: cache-save
+        if: steps.cache-restore.outputs.cache-hit != 'true'
         with:
           path: data/
           key: ${{ hashFiles('conf/sources.json') }}

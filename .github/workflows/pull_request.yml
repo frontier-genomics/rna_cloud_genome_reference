@@ -46,6 +46,7 @@ jobs:
       - name: save source data files for next use
         uses: actions/cache/save@v4
         id: cache-save
+        if: steps.cache-restore.outputs.cache-hit != 'true'
         with:
           path: data/
           key: ${{ hashFiles('conf/sources.json') }}
@@ -108,7 +109,7 @@ jobs:
           gh release download $tag -p 'md5checksums.txt' -O $tmpfile
 
           if [ ! -f $tmpfile ]; then
-            echo "::error No md5checksums.txt found at tag $tag."
+            echo "::error::No md5checksums.txt found at tag $tag."
             exit 1
           fi
 
@@ -122,8 +123,8 @@ jobs:
 
           # compare with the one produced in this run
           if cmp -s "output/md5checksums.txt" "$tmpfile"; then
-            echo "::notice= md5checksums match latest release ($tag)."
+            echo "::notice::= md5checksums match latest release ($tag)."
           else
-            echo "::notice≠ md5checksums differ from latest release ($tag):"
-            diff -u "$tmpfile" "output/md5checksums.txt" || true
+            echo "::notice::≠ md5checksums differ from latest release ($tag):"
+            diff -u "$tmpfile" "output/md5checksums.txt"
           fi
