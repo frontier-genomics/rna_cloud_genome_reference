@@ -6,7 +6,7 @@ GITHUB_REPO="rna_cloud_genome_reference"
 VERSION="0.0.12"
 
 ## GADI CONFIGURATION
-BASE_DIR=/g/data/qe93/rna_cloud_pipeline
+BASE_DIR=/g/data/qe93/rna_cloud_pipeline/reference_data
 CUSTOM_ASSEMBLY="${BASE_DIR}/GRCh38/assemblies/custom/rna_cloud/$VERSION"
 CUSTOM_ANNOTATION="${BASE_DIR}/GRCh38/annotations/custom/rna_cloud/$VERSION"
 rm -rf ${CUSTOM_ASSEMBLY} && mkdir -p ${CUSTOM_ASSEMBLY}
