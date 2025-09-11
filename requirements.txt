@@ -3,7 +3,7 @@ argcomplete==3.6.2
 argh==0.31.3
 asttokens==3.0.0
 backoff==2.2.1
-certifi==2025.6.15
+certifi==2025.8.3
 charset-normalizer==3.4.2
 comm==0.2.2
 debugpy==1.8.14
