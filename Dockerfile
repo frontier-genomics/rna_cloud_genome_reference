@@ -1,4 +1,4 @@
-FROM python:3.12.11-bullseye
+FROM python:3.13.6-bullseye
 
 # Install dependencies
 RUN apt-get update && \
