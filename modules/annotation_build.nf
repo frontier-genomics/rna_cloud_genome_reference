@@ -195,3 +195,68 @@ process SORT_GTF {
     tabix ${final_output_prefix}_rna_cloud.gtf.gz
     """
 }
+
+process GENERATE_BED_FILE {
+    tag "GENERATE_BED_FILE"
+    publishDir "${params.output_dir}", mode: 'copy'
+
+    input:
+    val final_output_prefix
+    path gtf   // Compressed GTF
+
+    output:
+    path "${final_output_prefix}.bed", emit: bed_file
+
+    script:
+    """
+    set -euo pipefail
+
+    # A. BEGIN sets the field separators
+    # B. The first block finds lines with string 'transcript_id "unassigned_transcript'.
+    # C. Saves the gene_id and original transcript_id values from the matches in B.
+    # D. Builds a new, unique ID.
+    # E. We then use sub() to replace the old value with the new one.
+    # F. We print the modified line, then skip to the next.
+    # G. The final {print} deals with the lines that did not match B.
+
+    awk 'BEGIN {OFS=FS="\t"}
+    /transcript_id "unassigned_transcript/ {
+        gene_id = ""
+        trans_id = ""
+
+        # extract gene_id
+        if (match(\$9, /gene_id "[^"]+"/)) {
+            tmp = substr(\$9, RSTART, RLENGTH)
+            sub(/^gene_id "/, "", tmp)
+            sub(/"\$/, "", tmp)
+            gene_id = tmp
+        }
+
+        # extract transcript_id
+        if (match(\$9, /transcript_id "unassigned_transcript_[^"]+"/)) {
+            tmp = substr(\$9, RSTART, RLENGTH)
+            sub(/^transcript_id "/, "", tmp)
+            sub(/"\$/, "", tmp)
+            trans_id = tmp
+        }
+
+        if (gene_id != "" && trans_id != "") {
+            new_tid = \$1 "_" gene_id "_" trans_id
+            sub(trans_id, new_tid, \$9)
+        }
+        print
+        next
+    }
+    { print }' <(gunzip -c ${gtf}) > temp.gtf
+
+    echo "Compressing GTF file"
+    bgzip temp.gtf
+    mv temp.gtf.gz ${final_output_prefix}.renamed_unassigned_tx.gtf.gz
+
+    echo "Generating BED file from GTF"
+    gtfToGenePred -ignoreGroupsWithoutExons ${final_output_prefix}.renamed_unassigned_tx.gtf.gz ${final_output_prefix}.renamed_unassigned_tx.genepred
+
+    echo "Converting genePred to BED file"
+    genePredToBed ${final_output_prefix}.renamed_unassigned_tx.genepred ${final_output_prefix}.bed
+    """
+}

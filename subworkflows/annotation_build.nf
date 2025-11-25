@@ -9,6 +9,7 @@ include { APPEND_GTFS as APPEND_EBV_GTF } from '../modules/annotation_build.nf'
 include { DECOMPRESS_GTF } from '../modules/annotation_build.nf'
 include { REMOVE_SECTIONS } from '../modules/annotation_build.nf'
 include { SORT_GTF } from '../modules/annotation_build.nf'
+include { GENERATE_BED_FILE } from '../modules/annotation_build.nf'
 
 workflow BUILD_ANNOTATION_REFERENCE {
     take:
@@ -71,7 +72,13 @@ workflow BUILD_ANNOTATION_REFERENCE {
         APPEND_EBV_GTF.out.gtf
     )
 
+    GENERATE_BED_FILE(
+        final_output_prefix,
+        SORT_GTF.out.gtf
+    )
+
     emit:
     gtf                   = SORT_GTF.out.gtf
     gtf_index             = SORT_GTF.out.gtf_index
+    bed_file              = GENERATE_BED_FILE.out.bed_file
 }
