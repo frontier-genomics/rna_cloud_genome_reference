@@ -11,6 +11,7 @@ process VALIDATE_GENOME_ANNOTATION {
     path gtf_index
     path masked_regions_bed
     path unmasked_regions_bed
+    path annotation_bed
 
     output:
     path "validation_report.txt", emit: report
@@ -25,7 +26,8 @@ process VALIDATE_GENOME_ANNOTATION {
       ${gtf} \
       ${gtf_index} \
       ${masked_regions_bed} \
-      ${unmasked_regions_bed} | tee validation_report.txt
+      ${unmasked_regions_bed} \
+      ${annotation_bed} | tee validation_report.txt
     """
 }
 

@@ -2,8 +2,8 @@
 
 set -uo pipefail
 
-if [ $# -ne 6 ]; then
-  echo "Usage: $0 <FASTA> <FASTA_INDEX> <GTF> <GTF_INDEX> <MASKED_REGIONS_BED> <UNMASKED_REGIONS_BED>"
+if [ $# -ne 7 ]; then
+  echo "Usage: $0 <FASTA> <FASTA_INDEX> <GTF> <GTF_INDEX> <MASKED_REGIONS_BED> <UNMASKED_REGIONS_BED> <ANNOTATION_BED>"
   exit 1
 fi
 
@@ -13,6 +13,7 @@ GTF="$3"
 GTF_INDEX="$4"
 MASKED_REGIONS_BED="$5"
 UNMASKED_REGIONS_BED="$6"
+ANNOTATION_BED="$7"
 
 echo "FASTA                 : $FASTA"
 echo "FASTA Index           : $FASTA_INDEX"
@@ -20,6 +21,7 @@ echo "GTF                   : $GTF"
 echo "GTF Index             : $GTF_INDEX"
 echo "Masked Regions BED    : $MASKED_REGIONS_BED"
 echo "Unmasked Regions BED  : $UNMASKED_REGIONS_BED"
+echo "Annotation BED        : $ANNOTATION_BED"
 
 # Initialize validation status
 VALIDATION_STATUS=0
@@ -129,6 +131,21 @@ if [ "$WARNINGS_COUNT" -eq 0 ]; then
   echo ✅ No warnings found in unmasked regions FASTA extraction!
 else
   echo ⛔️ Warnings found in unmasked regions FASTA extraction \(No. of warnings: ${WARNINGS_COUNT}\)!
+  VALIDATION_STATUS=1
+fi
+
+if [ "$VALIDATION_STATUS" -ne 0 ]; then
+  echo ❗ Validation failed!
+  exit "$VALIDATION_STATUS"
+fi
+
+echo 🕵️‍♀️ Check that annotation bed file transcript names do not start with 'unassigned'
+UNASSIGNED_COUNT=$(cat "$ANNOTATION_BED" | cut -f 4 | grep ^unassigned | wc -l)
+
+if [ "$UNASSIGNED_COUNT" -eq 0 ]; then
+  echo ✅ No transcript names start with 'unassigned' in annotation bed file!
+else
+  echo ⛔️ Some transcript names start with 'unassigned' in annotation bed file \(Count: ${UNASSIGNED_COUNT}\)!
   VALIDATION_STATUS=1
 fi
 

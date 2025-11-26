@@ -61,7 +61,8 @@ workflow {
         BUILD_ANNOTATION_REFERENCE.out.gtf,
         BUILD_ANNOTATION_REFERENCE.out.gtf_index,
         BUILD_GENOME_REFERENCE.out.mask_regions_bed,
-        BUILD_GENOME_REFERENCE.out.unmask_regions_bed
+        BUILD_GENOME_REFERENCE.out.unmask_regions_bed,
+        BUILD_ANNOTATION_REFERENCE.out.bed_file
     )
 
     genome_and_annotation_version = System.getenv("GENOME_AND_ANNOTATION_VERSION") ?: "0.0.0"
@@ -88,6 +89,7 @@ workflow {
         , BUILD_GENOME_REFERENCE.out.unmask_regions_bed
         , BUILD_ANNOTATION_REFERENCE.out.gtf
         , BUILD_ANNOTATION_REFERENCE.out.gtf_index
+        , BUILD_ANNOTATION_REFERENCE.out.bed_file
     )
 
     CALCULATE_MD5_SUMMARY(final_outputs)
