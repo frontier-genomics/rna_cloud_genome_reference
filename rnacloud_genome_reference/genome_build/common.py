@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
 GRC_FIXES_QUERY = '''
-    (comparison_status == 'Different - Sequences differ' and clinically_relevant_gene == True) or \
-    (comparison_status == 'Different - Exon numbering is discordant' and clinically_relevant_gene == True) or \
-    (comparison_status == 'Not comparable - Partial transcript annotation in GTF file' and clinically_relevant_gene == True and fix_contig_transcript_partial == False) or \
-    (comparison_status == 'Different - No. of exons or introns differ' and clinically_relevant_gene == True)
+    (comparison_status == 'Different - Sequences differ') or \
+    (comparison_status == 'Different - Exon numbering is discordant') or \
+    (comparison_status == 'Not comparable - Partial transcript annotation in GTF file' and fix_contig_transcript_partial == False) or \
+    (comparison_status == 'Different - No. of exons or introns differ')
 '''
 
 ASSEMBLY_REPORT_QUERY = '''
