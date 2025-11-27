@@ -1,7 +1,11 @@
 from typing import List
+
+from pytest_bdd import scenario, given, scenarios, then, parsers
 from rnacloud_genome_reference.grc_fixes.comparator import FeatureComparisonResult, FeatureSequenceHelper, FeatureComparator
 from rnacloud_genome_reference.common.gtf import Exon, Feature, Intron
 import pytest
+
+scenarios("features/test_comparator.feature")
 
 def make_intron(sequence, intron_no=1):
     """
@@ -178,184 +182,91 @@ class TestFeatureComparator:
         response = FeatureComparator.flag_discordant_exon_numbering(primary_seqs, fix_seqs)
         assert response == expected, f"Expected {expected} but got {response} for primary: {primary_seqs} and fix: {fix_seqs}"
 
-    @pytest.mark.parametrize(
-        "instance,expected_status",
-        [
-            # Identical
-            (
-                FeatureComparisonResult(
-                    primary_contig_transcript="tx1",
-                    primary_contig_transcript_is_mane_select=True,
-                    primary_contig_n_exons=5,
-                    primary_contig_n_introns=4,
-                    fix_contig_transcript="tx2",
-                    fix_contig_transcript_is_mane_select=True,
-                    fix_contig_n_exons=5,
-                    fix_contig_n_introns=4,
-                    n_exons_equal=True,
-                    n_introns_equal=True,
-                    sequences_unequal_n_exons=0,
-                    sequences_unequal_n_introns=0,
-                    splice_sites_unequal_n=0,
-                    discordant_exon_numbering=None,
-                    primary_contig_transcript_partial=False,
-                    fix_contig_transcript_partial=False
-                ),
-                "Identical",
-            ),
-            # Different - No. of exons or introns differ
-            (
-                FeatureComparisonResult(
-                    primary_contig_transcript="tx1",
-                    primary_contig_transcript_is_mane_select=True,
-                    primary_contig_n_exons=5,
-                    primary_contig_n_introns=4,
-                    fix_contig_transcript="tx2",
-                    fix_contig_transcript_is_mane_select=True,
-                    fix_contig_n_exons=6,
-                    fix_contig_n_introns=4,
-                    n_exons_equal=False,
-                    n_introns_equal=True,
-                    sequences_unequal_n_exons=0,
-                    sequences_unequal_n_introns=0,
-                    splice_sites_unequal_n=0,
-                    discordant_exon_numbering=None,
-                    primary_contig_transcript_partial=False,
-                    fix_contig_transcript_partial=False
-                ),
-                "Different - No. of exons or introns differ",
-            ),
-            # Different - Sequences differ
-            (
-                FeatureComparisonResult(
-                    primary_contig_transcript="tx1",
-                    primary_contig_transcript_is_mane_select=True,
-                    primary_contig_n_exons=5,
-                    primary_contig_n_introns=4,
-                    fix_contig_transcript="tx2",
-                    fix_contig_transcript_is_mane_select=True,
-                    fix_contig_n_exons=5,
-                    fix_contig_n_introns=4,
-                    n_exons_equal=True,
-                    n_introns_equal=True,
-                    sequences_unequal_n_exons=1,
-                    sequences_unequal_n_introns=0,
-                    splice_sites_unequal_n=0,
-                    discordant_exon_numbering=None,
-                    primary_contig_transcript_partial=False,
-                    fix_contig_transcript_partial=False
-                ),
-                "Different - Sequences differ",
-            ),
-            # Different - Splice-site sequences differ
-            (
-                FeatureComparisonResult(
-                    primary_contig_transcript="tx1",
-                    primary_contig_transcript_is_mane_select=True,
-                    primary_contig_n_exons=5,
-                    primary_contig_n_introns=4,
-                    fix_contig_transcript="tx2",
-                    fix_contig_transcript_is_mane_select=True,
-                    fix_contig_n_exons=5,
-                    fix_contig_n_introns=4,
-                    n_exons_equal=True,
-                    n_introns_equal=True,
-                    sequences_unequal_n_exons=0,
-                    sequences_unequal_n_introns=0,
-                    splice_sites_unequal_n=1,
-                    discordant_exon_numbering=None,
-                    primary_contig_transcript_partial=False,
-                    fix_contig_transcript_partial=False
-                ),
-                "Different - Splice-site sequences differ",
-            ),
-            # Different - Exon numbering is discordant
-            (
-                FeatureComparisonResult(
-                    primary_contig_transcript="tx1",
-                    primary_contig_transcript_is_mane_select=True,
-                    primary_contig_n_exons=5,
-                    primary_contig_n_introns=4,
-                    fix_contig_transcript="tx2",
-                    fix_contig_transcript_is_mane_select=True,
-                    fix_contig_n_exons=5,
-                    fix_contig_n_introns=4,
-                    n_exons_equal=True,
-                    n_introns_equal=True,
-                    sequences_unequal_n_exons=0,
-                    sequences_unequal_n_introns=0,
-                    splice_sites_unequal_n=0,
-                    discordant_exon_numbering=True,
-                    primary_contig_transcript_partial=False,
-                    fix_contig_transcript_partial=False
-                ),
-                "Different - Exon numbering is discordant",
-            ),
-            # Not comparable: fix_contig_transcript is None
-            (
-                FeatureComparisonResult(
-                    primary_contig_transcript="tx1",
-                    primary_contig_transcript_is_mane_select=True,
-                    primary_contig_n_exons=5,
-                    primary_contig_n_introns=4,
-                    fix_contig_transcript=None,
-                    fix_contig_transcript_is_mane_select=False,
-                    fix_contig_n_exons=5,
-                    fix_contig_n_introns=4,
-                    n_exons_equal=True,
-                    n_introns_equal=True,
-                    sequences_unequal_n_exons=0,
-                    sequences_unequal_n_introns=0,
-                    splice_sites_unequal_n=0,
-                    discordant_exon_numbering=None,
-                    primary_contig_transcript_partial=False,
-                    fix_contig_transcript_partial=False
-                ),
-                "Not comparable",
-            ),
-            (
-                FeatureComparisonResult(
-                    primary_contig_transcript="NT_187651.1",
-                    primary_contig_transcript_is_mane_select=True,
-                    primary_contig_n_exons=5,
-                    primary_contig_n_introns=4,
-                    fix_contig_transcript=None,
-                    fix_contig_transcript_is_mane_select=True,
-                    fix_contig_n_exons=5,
-                    fix_contig_n_introns=4,
-                    n_exons_equal=True,
-                    n_introns_equal=True,
-                    sequences_unequal_n_exons=0,
-                    sequences_unequal_n_introns=0,
-                    splice_sites_unequal_n=0,
-                    discordant_exon_numbering=None,
-                    primary_contig_transcript_partial=True,
-                    fix_contig_transcript_partial=None
-                ),
-                "Not comparable",
-            ),
-            (
-                FeatureComparisonResult(
-                    primary_contig_transcript="tx1",
-                    primary_contig_transcript_is_mane_select=True,
-                    primary_contig_n_exons=5,
-                    primary_contig_n_introns=4,
-                    fix_contig_transcript='tx1',
-                    fix_contig_transcript_is_mane_select=True,
-                    fix_contig_n_exons=5,
-                    fix_contig_n_introns=4,
-                    n_exons_equal=True,
-                    n_introns_equal=True,
-                    sequences_unequal_n_exons=0,
-                    sequences_unequal_n_introns=0,
-                    splice_sites_unequal_n=0,
-                    discordant_exon_numbering=None,
-                    primary_contig_transcript_partial=False,
-                    fix_contig_transcript_partial=True
-                ),
-                "Not comparable - Partial transcript annotation in GTF file",
-            )
-        ]
+   
+def _parse_bool_or_none(value: str):
+    if value == "True":
+        return True
+    if value == "False":
+        return False
+    if value == "None":
+        return None
+    raise ValueError(f"Cannot parse boolean/None from {value!r}")
+
+
+def _parse_optional_str(value: str):
+    return None if value == "None" else value
+
+@given(
+    parsers.parse(
+        "a feature comparison {primary_contig_transcript}, "
+        "{primary_contig_transcript_is_mane_select}, "
+        "{primary_contig_transcript_partial}, "
+        "{primary_contig_n_exons}, "
+        "{primary_contig_n_introns}, "
+        "{fix_contig_transcript}, "
+        "{fix_contig_transcript_is_mane_select}, "
+        "{fix_contig_transcript_partial}, "
+        "{fix_contig_n_exons}, "
+        "{fix_contig_n_introns}, "
+        "{n_exons_equal}, "
+        "{n_introns_equal}, "
+        "{sequences_unequal_n_exons}, "
+        "{sequences_unequal_n_introns}, "
+        "{splice_sites_unequal_n}, "
+        "{discordant_exon_numbering}"
+    ),
+    target_fixture="instance",
+)
+def feature_comparison_instance(
+    primary_contig_transcript,
+    primary_contig_transcript_is_mane_select,
+    primary_contig_transcript_partial,
+    primary_contig_n_exons,
+    primary_contig_n_introns,
+    fix_contig_transcript,
+    fix_contig_transcript_is_mane_select,
+    fix_contig_transcript_partial,
+    fix_contig_n_exons,
+    fix_contig_n_introns,
+    n_exons_equal,
+    n_introns_equal,
+    sequences_unequal_n_exons,
+    sequences_unequal_n_introns,
+    splice_sites_unequal_n,
+    discordant_exon_numbering,
+) -> FeatureComparisonResult:
+    """
+    Build FeatureComparisonResult directly from the Examples table columns.
+    All values arrive as strings; we coerce to the proper types here.
+    """
+    return FeatureComparisonResult(
+        primary_contig_transcript=_parse_optional_str(primary_contig_transcript),
+        primary_contig_transcript_is_mane_select=_parse_bool_or_none(
+            primary_contig_transcript_is_mane_select
+        ),
+        primary_contig_transcript_partial=_parse_bool_or_none(
+            primary_contig_transcript_partial
+        ),
+        primary_contig_n_exons=int(primary_contig_n_exons),
+        primary_contig_n_introns=int(primary_contig_n_introns),
+        fix_contig_transcript=_parse_optional_str(fix_contig_transcript),
+        fix_contig_transcript_is_mane_select=_parse_bool_or_none(
+            fix_contig_transcript_is_mane_select
+        ),
+        fix_contig_transcript_partial=_parse_bool_or_none(
+            fix_contig_transcript_partial
+        ),
+        fix_contig_n_exons=int(fix_contig_n_exons),
+        fix_contig_n_introns=int(fix_contig_n_introns),
+        n_exons_equal=_parse_bool_or_none(n_exons_equal),
+        n_introns_equal=_parse_bool_or_none(n_introns_equal),
+        sequences_unequal_n_exons=int(sequences_unequal_n_exons),
+        sequences_unequal_n_introns=int(sequences_unequal_n_introns),
+        splice_sites_unequal_n=int(splice_sites_unequal_n),
+        discordant_exon_numbering=_parse_bool_or_none(discordant_exon_numbering),
     )
-    def test_comparison_status(self, instance: FeatureComparisonResult, expected_status: str):
-        assert instance.comparison_status == expected_status
+
+
+@then(parsers.parse('the comparison status should be "{expected_status}"'))
+def comparison_status_should_be(instance: FeatureComparisonResult, expected_status: str):
+    assert instance.comparison_status == expected_status

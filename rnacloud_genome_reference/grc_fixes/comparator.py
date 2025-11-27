@@ -32,37 +32,48 @@ class FeatureComparisonResult:
     fix_exon_lengths: str | None = field(default=None, repr=False)
     fix_intron_lengths: str | None = field(default=None, repr=False)
     discordant_exon_numbering: bool | None = field(default=None, repr=False)
-    comparison_status: Literal["Identical",
-                               "Different - No. of exons or introns differ",
-                               "Different - Sequences differ",
-                               "Different - Unknown reason",
-                               "Different - Splice-site sequences differ",
-                               "Different - Exon numbering is discordant",
-                               "Not comparable - Partial transcript annotation in GTF file",
-                               "Not comparable",
-                               "Unknown"] = field(default="Unknown", init=False)
+    comparison_status: Literal["Not comparable - Primary or Fix transcript not available",
+                               "Not comparable - Fix transcript is partial",
+                               "Identical",
+                               "Different - No. of exons and introns differ",
+                               "Different - Discordant/flipped exon numbering",
+                               "Different - Splice sites differ",
+                               "Different - Exons or introns sequences differ",
+                               "Different - Unknown reason"] = field(default="Different - Unknown reason", init=False)
 
     def __post_init__(self):
-        if (self.n_exons_equal and self.n_introns_equal and self.sequences_unequal_n_exons == 0 and self.sequences_unequal_n_introns == 0):
-            self.comparison_status = "Identical"
-        
-        if not self.n_exons_equal or not self.n_introns_equal:
-            self.comparison_status = "Different - No. of exons or introns differ"
-        
-        if self.n_exons_equal and self.n_introns_equal and (self.sequences_unequal_n_exons > 0 or self.sequences_unequal_n_introns > 0):
-            self.comparison_status = "Different - Sequences differ"
-        
-        if self.splice_sites_unequal_n > 0:
-            self.comparison_status = "Different - Splice-site sequences differ"
+        FLAG_PRIMARY_AND_FIX_TX_AVAILABLE = self.primary_contig_transcript is not None and self.fix_contig_transcript is not None
+        FLAG_SAME_N_INTRONS_AND_EXONS = self.n_exons_equal and self.n_introns_equal
+        FLAG_SAME_INTRON_EXON_SEQ = self.sequences_unequal_n_exons == 0 and self.sequences_unequal_n_introns == 0
+        FLAG_SAME_SPLICE_SITES = self.splice_sites_unequal_n == 0
+        FLAG_SAME_EXON_NUMBERING = self.discordant_exon_numbering is False
+        FLAG_FIX_CONTIG_TRANSCRIPT_COMPLETE = self.fix_contig_transcript_partial is False
 
-        if self.fix_contig_transcript is not None and self.primary_contig_transcript is not None and self.discordant_exon_numbering is True:
-            self.comparison_status = "Different - Exon numbering is discordant"
+        logger.debug("Determining comparison status with the following flags:")
+        logger.debug(f"  FLAG_PRIMARY_AND_FIX_TX_AVAILABLE: {FLAG_PRIMARY_AND_FIX_TX_AVAILABLE}")
+        logger.debug(f"  FLAG_SAME_N_INTRONS_AND_EXONS: {FLAG_SAME_N_INTRONS_AND_EXONS}")
+        logger.debug(f"  FLAG_SAME_INTRON_EXON_SEQ: {FLAG_SAME_INTRON_EXON_SEQ}")
+        logger.debug(f"  FLAG_SAME_SPLICE_SITES: {FLAG_SAME_SPLICE_SITES}")
+        logger.debug(f"  FLAG_SAME_EXON_NUMBERING: {FLAG_SAME_EXON_NUMBERING}")
+        logger.debug(f"  FLAG_FIX_CONTIG_TRANSCRIPT_COMPLETE: {FLAG_FIX_CONTIG_TRANSCRIPT_COMPLETE}")
 
-        if self.primary_contig_transcript is not None and self.fix_contig_transcript is None:
-            self.comparison_status = "Not comparable"
+        if not FLAG_PRIMARY_AND_FIX_TX_AVAILABLE:
+            self.comparison_status = 'Not comparable - Primary or Fix transcript not available'
+        elif not FLAG_FIX_CONTIG_TRANSCRIPT_COMPLETE:
+            self.comparison_status = 'Not comparable - Fix transcript is partial'
+        elif FLAG_SAME_N_INTRONS_AND_EXONS and FLAG_SAME_INTRON_EXON_SEQ and FLAG_SAME_SPLICE_SITES and FLAG_SAME_EXON_NUMBERING:
+            self.comparison_status = 'Identical'
+        elif not FLAG_SAME_N_INTRONS_AND_EXONS:
+            self.comparison_status = 'Different - No. of exons and introns differ'
+        elif not FLAG_SAME_EXON_NUMBERING:
+            self.comparison_status = 'Different - Discordant/flipped exon numbering'
+        elif not FLAG_SAME_SPLICE_SITES:
+            self.comparison_status = 'Different - Splice sites differ'
+        elif not FLAG_SAME_INTRON_EXON_SEQ:
+            self.comparison_status = 'Different - Exons or introns sequences differ'
+        else:
+            self.comparison_status = 'Different - Unknown reason'
 
-        if self.primary_contig_transcript is not None and self.fix_contig_transcript is not None and self.primary_contig_transcript_partial or self.fix_contig_transcript_partial:
-            self.comparison_status = "Not comparable - Partial transcript annotation in GTF file"
         
 class FeatureSequenceHelper:
     def __init__(self, fasta: str):
