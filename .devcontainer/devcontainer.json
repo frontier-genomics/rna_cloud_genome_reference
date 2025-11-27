@@ -47,7 +47,8 @@
 				"nextflow.nextflow",
 				"yzhang.markdown-all-in-one",
 				"Gruntfuggly.todo-tree",
-				"njpwerner.autodocstring"
+				"njpwerner.autodocstring",
+				"alexkrechik.cucumberautocomplete"
 			]
 		}
 	},
