@@ -7,13 +7,6 @@ echo "----------------------------------------------------------------------"
 
 echo "Current folder: $(pwd)"
 
-# Parse optional --cleanup flag
-CLEANUP_FLAG=""
-if [[ "$1" == "--cleanup" ]]; then
-  echo "Cleanup enabled: work/ directory will be removed after successful run."
-  CLEANUP_FLAG="-cleanup"
-fi
-
 GENOME_AND_ANNOTATION_VERSION=${GENOME_AND_ANNOTATION_VERSION:-"0.0.0"}
 echo "Genome and annotation version: $GENOME_AND_ANNOTATION_VERSION"
 
@@ -32,5 +25,4 @@ docker run \
     -with-report /app/output/report.html \
     -with-timeline /app/output/timeline.html \
     -params-file /app/conf/sources.json \
-    -process.scratch=true \
-    $CLEANUP_FLAG
+    -process.scratch=true

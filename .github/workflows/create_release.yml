@@ -38,7 +38,7 @@ jobs:
         run: ./run_tests.sh
 
       - name: Run workflow
-        run: ./run_workflow.sh --cleanup
+        run: ./run_workflow.sh
         env:
           GENOME_AND_ANNOTATION_VERSION: ${{ steps.new_version.outputs.tag }}
 
