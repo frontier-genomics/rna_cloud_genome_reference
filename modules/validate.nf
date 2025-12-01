@@ -12,6 +12,7 @@ process VALIDATE_GENOME_ANNOTATION {
     path masked_regions_bed
     path unmasked_regions_bed
     path annotation_bed
+    val ncbi_assembly_masked_regions_paths
 
     output:
     path "validation_report.txt", emit: report
@@ -20,13 +21,20 @@ process VALIDATE_GENOME_ANNOTATION {
     """
     set -euo pipefail
 
+    echo "Append NCBI assembly masked regions to masked_regions_bed"
+    for bed in ${ncbi_assembly_masked_regions_paths.join(' ')}; do
+      cat \$bed >> combined_ncbi_assembly_masked_regions.bed
+    done
+    bedtools subtract -a ${unmasked_regions_bed} -b combined_ncbi_assembly_masked_regions.bed > updated_unmasked_regions.bed
+
+    echo "Running validation script"
     /app/rnacloud_genome_reference/validation/scripts/validation.sh \
       ${fasta} \
       ${fasta_index} \
       ${gtf} \
       ${gtf_index} \
       ${masked_regions_bed} \
-      ${unmasked_regions_bed} \
+      updated_unmasked_regions.bed \
       ${annotation_bed} | tee validation_report.txt
     """
 }

@@ -18,6 +18,9 @@
         "NT_167214": "reference/rRNA/NT_167214.1.gtf",
         "NT_187388": "reference/rRNA/NT_187388.1.gtf"
     },
+    "ncbi_assembly_masked_regions": {
+        "chr15_KN538374v1_fix": "reference/ncbi_assembly_masked_regions/chr15_KN538374v1_fix.bed"
+    },
     "gnomad": {
         "reference": "data/gnomad/GRCh38/gnomad_r4_freq.tsv.gz",
         "freq": 0.1,

@@ -55,6 +55,10 @@ workflow {
         GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment
     )
 
+    // These are regions of the genome that are already masked in the NCBI assembly
+    // It is necessary to ensure validation scripts are aware of these regions
+    def ncbi_assembly_masked_regions_paths = [params.ncbi_assembly_masked_regions.chr15_KN538374v1_fix].collect { it -> "${projectDir}/${it}" }
+
     VALIDATE_GENOME_ANNOTATION(
         BUILD_GENOME_REFERENCE.out.fasta,
         BUILD_GENOME_REFERENCE.out.fasta_fai_index,
@@ -62,7 +66,8 @@ workflow {
         BUILD_ANNOTATION_REFERENCE.out.gtf_index,
         BUILD_GENOME_REFERENCE.out.mask_regions_bed,
         BUILD_GENOME_REFERENCE.out.unmask_regions_bed,
-        BUILD_ANNOTATION_REFERENCE.out.bed_file
+        BUILD_ANNOTATION_REFERENCE.out.bed_file,
+        channel.value(ncbi_assembly_masked_regions_paths)
     )
 
     genome_and_annotation_version = System.getenv("GENOME_AND_ANNOTATION_VERSION") ?: "0.0.0"
