@@ -177,8 +177,9 @@ process SORT_GTF {
     path gtf                // Compressed GTF
 
     output:
-    path "${final_output_prefix}_rna_cloud.gtf.gz", emit: gtf
-    path "${final_output_prefix}_rna_cloud.gtf.gz.tbi", emit: gtf_index
+    path "${final_output_prefix}_rna_cloud.gtf.gz", emit: compressed_gtf
+    path "${final_output_prefix}_rna_cloud.gtf.gz.tbi", emit: compressed_gtf_index
+    path "${final_output_prefix}_rna_cloud.gtf", emit: uncompressed_gtf
 
     script:
     """
@@ -189,7 +190,7 @@ process SORT_GTF {
       ${gtf} ${final_output_prefix}_rna_cloud.gtf
 
     echo "Compressing GTF file"
-    bgzip ${final_output_prefix}_rna_cloud.gtf
+    bgzip -c ${final_output_prefix}_rna_cloud.gtf > ${final_output_prefix}_rna_cloud.gtf.gz
 
     echo "Indexing GTF file"
     tabix ${final_output_prefix}_rna_cloud.gtf.gz
@@ -202,7 +203,7 @@ process GENERATE_BED_FILE {
 
     input:
     val final_output_prefix
-    path gtf   // Compressed GTF
+    path compressed_gtf   // Compressed GTF
 
     output:
     path "${final_output_prefix}.bed", emit: bed_file
@@ -247,7 +248,7 @@ process GENERATE_BED_FILE {
         print
         next
     }
-    { print }' <(gunzip -c ${gtf}) > temp.gtf
+    { print }' <(gunzip -c ${compressed_gtf}) > temp.gtf
 
     echo "Compressing GTF file"
     bgzip temp.gtf

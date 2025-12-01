@@ -84,9 +84,11 @@ workflow BUILD_GENOME_REFERENCE {
     )
 
     emit:
-    fasta                 = SORT_FASTA.out.fasta
-    fasta_fai_index       = SORT_FASTA.out.fasta_fai_index
-    fasta_gzi_index       = SORT_FASTA.out.fasta_gzi_index
-    mask_regions_bed      = MASK_FASTA.out.mask_regions_bed
-    unmask_regions_bed    = GRC_FIX_UNMASK_REGIONS.out.bed
+    compressed_fasta                 = SORT_FASTA.out.compressed_fasta
+    compressed_fasta_fai_index       = SORT_FASTA.out.compressed_fasta_fai_index
+    compressed_fasta_gzi_index       = SORT_FASTA.out.compressed_fasta_gzi_index
+    uncompressed_fasta               = SORT_FASTA.out.uncompressed_fasta
+    uncompressed_fasta_fai_index     = SORT_FASTA.out.uncompressed_fasta_fai_index
+    mask_regions_bed                 = MASK_FASTA.out.mask_regions_bed
+    unmask_regions_bed               = GRC_FIX_UNMASK_REGIONS.out.bed
 }
