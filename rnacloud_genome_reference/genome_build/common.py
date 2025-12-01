@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
 GRC_FIXES_QUERY = '''
-    (comparison_status == 'Different - Sequences differ') or \
-    (comparison_status == 'Different - Exon numbering is discordant') or \
-    (comparison_status == 'Not comparable - Partial transcript annotation in GTF file' and fix_contig_transcript_partial == False) or \
-    (comparison_status == 'Different - No. of exons or introns differ')
+    (comparison_status == 'Different - Exons or introns sequences differ') or \
+    (comparison_status == 'Different - No. of exons and introns differ') or \
+    (comparison_status == 'Different - Discordant/flipped exon numbering') or \
+    (comparison_status == 'Different - Splice sites differ')
 '''
 
 ASSEMBLY_REPORT_QUERY = '''
