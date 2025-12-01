@@ -5,7 +5,7 @@ on:
 
 jobs:
   create_release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-4core-16gb
     env:
       IMAGE_NAME: "rnacloud_runner"
     steps:
