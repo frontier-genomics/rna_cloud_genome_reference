@@ -24,7 +24,7 @@ workflow BUILD_ANNOTATION_REFERENCE {
 
     REMOVE_SECTIONS(
         gtf,
-        Channel.value([["NC_000021.9", "rRNA"],
+        channel.value([["NC_000021.9", "rRNA"],
                        ["NT_187388.1", "rRNA"],
                        ["NT_167214.1", "rRNA"]])
     )
@@ -36,7 +36,7 @@ workflow BUILD_ANNOTATION_REFERENCE {
     APPEND_RIBOSOMAL_RNA_GTFS(
         "rRNA",
         REMOVE_SECTIONS.out.gtf,
-        Channel.value(rRNA_gtf_paths)
+        channel.value(rRNA_gtf_paths)
     )
 
     CONVERT_ANNOTATION_REFSEQ_TO_UCSC(
