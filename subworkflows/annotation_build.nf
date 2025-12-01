@@ -74,11 +74,12 @@ workflow BUILD_ANNOTATION_REFERENCE {
 
     GENERATE_BED_FILE(
         final_output_prefix,
-        SORT_GTF.out.gtf
+        SORT_GTF.out.compressed_gtf
     )
 
     emit:
-    gtf                   = SORT_GTF.out.gtf
-    gtf_index             = SORT_GTF.out.gtf_index
-    bed_file              = GENERATE_BED_FILE.out.bed_file
+    compressed_gtf                 = SORT_GTF.out.compressed_gtf
+    compressed_gtf_index           = SORT_GTF.out.compressed_gtf_index
+    uncompressed_gtf               = SORT_GTF.out.uncompressed_gtf
+    bed_file                       = GENERATE_BED_FILE.out.bed_file
 }

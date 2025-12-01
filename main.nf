@@ -60,10 +60,10 @@ workflow {
     def ncbi_assembly_masked_regions_paths = [params.ncbi_assembly_masked_regions.chr15_KN538374v1_fix].collect { it -> "${projectDir}/${it}" }
 
     VALIDATE_GENOME_ANNOTATION(
-        BUILD_GENOME_REFERENCE.out.fasta,
-        BUILD_GENOME_REFERENCE.out.fasta_fai_index,
-        BUILD_ANNOTATION_REFERENCE.out.gtf,
-        BUILD_ANNOTATION_REFERENCE.out.gtf_index,
+        BUILD_GENOME_REFERENCE.out.compressed_fasta,
+        BUILD_GENOME_REFERENCE.out.compressed_fasta_fai_index,
+        BUILD_ANNOTATION_REFERENCE.out.compressed_gtf,
+        BUILD_ANNOTATION_REFERENCE.out.compressed_gtf_index,
         BUILD_GENOME_REFERENCE.out.mask_regions_bed,
         BUILD_GENOME_REFERENCE.out.unmask_regions_bed,
         BUILD_ANNOTATION_REFERENCE.out.bed_file,
@@ -73,11 +73,11 @@ workflow {
     genome_and_annotation_version = System.getenv("GENOME_AND_ANNOTATION_VERSION") ?: "0.0.0"
 
     GENOME_AND_ANNOTATION_REPORT(
-        BUILD_GENOME_REFERENCE.out.fasta,
-        BUILD_GENOME_REFERENCE.out.fasta_gzi_index,
-        BUILD_GENOME_REFERENCE.out.fasta_fai_index,
-        BUILD_ANNOTATION_REFERENCE.out.gtf,
-        BUILD_ANNOTATION_REFERENCE.out.gtf_index,
+        BUILD_GENOME_REFERENCE.out.compressed_fasta,
+        BUILD_GENOME_REFERENCE.out.compressed_fasta_gzi_index,
+        BUILD_GENOME_REFERENCE.out.compressed_fasta_fai_index,
+        BUILD_ANNOTATION_REFERENCE.out.compressed_gtf,
+        BUILD_ANNOTATION_REFERENCE.out.compressed_gtf_index,
         DOWNLOAD_GENOME_AND_REFERENCES.out.assembly_report,
         DOWNLOAD_GENOME_AND_REFERENCES.out.cen_par_mask_regions,
         GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment,
@@ -87,13 +87,16 @@ workflow {
 
     def final_outputs = GRC_FIXES_ASSESSMENT.out.grc_fixes_assessment.merge(
         SPLICE_SITE_GNOMAD_FREQ.out.splice_site_pop_freq
-        , BUILD_GENOME_REFERENCE.out.fasta
-        , BUILD_GENOME_REFERENCE.out.fasta_fai_index
-        , BUILD_GENOME_REFERENCE.out.fasta_gzi_index
+        , BUILD_GENOME_REFERENCE.out.compressed_fasta
+        , BUILD_GENOME_REFERENCE.out.compressed_fasta_fai_index
+        , BUILD_GENOME_REFERENCE.out.compressed_fasta_gzi_index
+        , BUILD_GENOME_REFERENCE.out.uncompressed_fasta
+        , BUILD_GENOME_REFERENCE.out.uncompressed_fasta_fai_index
         , BUILD_GENOME_REFERENCE.out.mask_regions_bed
         , BUILD_GENOME_REFERENCE.out.unmask_regions_bed
-        , BUILD_ANNOTATION_REFERENCE.out.gtf
-        , BUILD_ANNOTATION_REFERENCE.out.gtf_index
+        , BUILD_ANNOTATION_REFERENCE.out.compressed_gtf
+        , BUILD_ANNOTATION_REFERENCE.out.compressed_gtf_index
+        , BUILD_ANNOTATION_REFERENCE.out.uncompressed_gtf
         , BUILD_ANNOTATION_REFERENCE.out.bed_file
     )
 
