@@ -12,12 +12,14 @@ RUN apt-get update && \
 
 WORKDIR /tmp
 
+ARG MAMBA_VERSION=2.3.3
+
 # Install micromamba (arch-specific)
 RUN ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ]; then \
-        MAMBA_URL="https://micro.mamba.pm/api/micromamba/linux-64/latest"; \
+        MAMBA_URL="https://micro.mamba.pm/api/micromamba/linux-64/${MAMBA_VERSION}"; \
     elif [ "$ARCH" = "aarch64" ]; then \
-        MAMBA_URL="https://micro.mamba.pm/api/micromamba/linux-aarch64/latest"; \
+        MAMBA_URL="https://micro.mamba.pm/api/micromamba/linux-aarch64/${MAMBA_VERSION}"; \
     else \
         echo "Unsupported architecture: $ARCH" && exit 1; \
     fi && \
