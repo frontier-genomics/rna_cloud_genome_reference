@@ -26,7 +26,8 @@ RUN ARCH=$(uname -m) && \
     rm -rf bin
 
 # Create an env in a fixed path and install samtools
-RUN /usr/local/bin/micromamba create -y -p /opt/conda/envs/bioenv -c conda-forge -c bioconda ucsc-genepredtobed==482 ucsc-gtftogenepred==482 samtools=1.22.1 duckdb-cli=1.3.2 bedtools=2.31.1 seqkit=2.10.1 && \
+RUN /usr/local/bin/micromamba clean -a && \
+    /usr/local/bin/micromamba create -y -p /opt/conda/envs/bioenv -c conda-forge -c bioconda ucsc-genepredtobed==482 ucsc-gtftogenepred==482 samtools=1.22.1 duckdb-cli=1.3.2 bedtools=2.31.1 seqkit=2.10.1 && \
     /usr/local/bin/micromamba clean --all -y
 
 # Put that env first on PATH so binaries are available without activation
