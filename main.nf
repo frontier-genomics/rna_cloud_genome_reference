@@ -90,8 +90,6 @@ workflow {
         , BUILD_GENOME_REFERENCE.out.compressed_fasta
         , BUILD_GENOME_REFERENCE.out.compressed_fasta_fai_index
         , BUILD_GENOME_REFERENCE.out.compressed_fasta_gzi_index
-        , BUILD_GENOME_REFERENCE.out.uncompressed_fasta
-        , BUILD_GENOME_REFERENCE.out.uncompressed_fasta_fai_index
         , BUILD_GENOME_REFERENCE.out.mask_regions_bed
         , BUILD_GENOME_REFERENCE.out.unmask_regions_bed
         , BUILD_ANNOTATION_REFERENCE.out.compressed_gtf

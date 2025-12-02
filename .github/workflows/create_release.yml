@@ -34,6 +34,11 @@ jobs:
       - name: Build Docker Image
         run: docker build -t $IMAGE_NAME .
 
+      - name: Set up directories
+        run: |
+          mkdir -p data temp output work reference
+          chmod -R 777 data temp output work reference
+
       - name: Run tests
         run: ./run_tests.sh
 
@@ -89,8 +94,6 @@ jobs:
             output/grc_fixes_assessment.tsv
             output/splice_site_pop_freq.tsv
             output/*.fasta.gz*
-            output/*.fasta
-            output/*.fasta.fai
             output/*.gtf.gz*
             output/*.gtf
             output/md5checksums.txt
