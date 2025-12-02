@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+RUN mkdir -p /app && chown $MAMBA_USER:$MAMBA_USER /app
+
 USER $MAMBA_USER
 
 RUN micromamba create \
