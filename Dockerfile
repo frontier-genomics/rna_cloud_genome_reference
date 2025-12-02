@@ -28,14 +28,14 @@ RUN ARCH=$(uname -m) && \
     rm -rf bin
 
 # 🔸 Force micromamba to use plain repodata.json instead of .zst
-RUN mkdir -p /etc/mamba && \
+RUN mkdir -p /etc/conda && \
   printf '%s\n' \
     "channels:" \
     "  - conda-forge" \
     "  - bioconda" \
     "repodata_fns:" \
     "  - repodata.json" \
-    > /etc/mamba/.mambarc
+    > /etc/conda/.mambarc
 
 # Create an env in a fixed path and install samtools + friends
 RUN /usr/local/bin/micromamba clean -a && \
