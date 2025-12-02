@@ -1,4 +1,4 @@
-FROM mambaorg/micromamba:2.3.3-ubuntu24.04
+FROM mambaorg/micromamba:1.5.10-noble
 
 USER root
 
