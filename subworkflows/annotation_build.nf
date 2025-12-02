@@ -50,10 +50,7 @@ workflow BUILD_ANNOTATION_REFERENCE {
     )
 
     def target_contigs = GET_TARGET_CONTIGS.out
-
-    // Obtain the final output prefix from the GTF filename
-    def gtf_filename_from_url = "${params.genome.annotation_url.tokenize('/')[-1]}"
-    def (full, final_output_prefix, suffix) = (gtf_filename_from_url =~ /(G.+p\d+)(_.+)/)[0]
+    def final_output_prefix = "annotation"
 
     SUBSET_GTF(
         CONVERT_ANNOTATION_REFSEQ_TO_UCSC.out.gtf,

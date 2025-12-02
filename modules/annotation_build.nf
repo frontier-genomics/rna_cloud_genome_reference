@@ -177,9 +177,9 @@ process SORT_GTF {
     path gtf                // Compressed GTF
 
     output:
-    path "${final_output_prefix}_rna_cloud.gtf.gz", emit: compressed_gtf
-    path "${final_output_prefix}_rna_cloud.gtf.gz.tbi", emit: compressed_gtf_index
-    path "${final_output_prefix}_rna_cloud.gtf", emit: uncompressed_gtf
+    path "${final_output_prefix}.gtf.gz", emit: compressed_gtf
+    path "${final_output_prefix}.gtf.gz.tbi", emit: compressed_gtf_index
+    path "${final_output_prefix}.gtf", emit: uncompressed_gtf
 
     script:
     """
@@ -187,13 +187,13 @@ process SORT_GTF {
 
     echo "Sorting GTF file"
     /app/rnacloud_genome_reference/genome_build/scripts/gtf_sort.sh \
-      ${gtf} ${final_output_prefix}_rna_cloud.gtf
+      ${gtf} ${final_output_prefix}.gtf
 
     echo "Compressing GTF file"
-    bgzip -c ${final_output_prefix}_rna_cloud.gtf > ${final_output_prefix}_rna_cloud.gtf.gz
+    bgzip -c ${final_output_prefix}.gtf > ${final_output_prefix}.gtf.gz
 
     echo "Indexing GTF file"
-    tabix ${final_output_prefix}_rna_cloud.gtf.gz
+    tabix ${final_output_prefix}.gtf.gz
     """
 }
 

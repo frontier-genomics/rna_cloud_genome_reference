@@ -245,26 +245,26 @@ process SORT_FASTA {
     path fasta_gzi_index
 
     output:
-    path "${final_output_prefix}_rna_cloud.fasta.gz", emit: compressed_fasta
-    path "${final_output_prefix}_rna_cloud.fasta.gz.fai", emit: compressed_fasta_fai_index
-    path "${final_output_prefix}_rna_cloud.fasta.gz.gzi", emit: compressed_fasta_gzi_index
-    path "${final_output_prefix}_rna_cloud.fasta", emit: uncompressed_fasta
-    path "${final_output_prefix}_rna_cloud.fasta.fai", emit: uncompressed_fasta_fai_index
+    path "${final_output_prefix}.fasta.gz", emit: compressed_fasta
+    path "${final_output_prefix}.fasta.gz.fai", emit: compressed_fasta_fai_index
+    path "${final_output_prefix}.fasta.gz.gzi", emit: compressed_fasta_gzi_index
+    path "${final_output_prefix}.fasta", emit: uncompressed_fasta
+    path "${final_output_prefix}.fasta.fai", emit: uncompressed_fasta_fai_index
 
     script:
     """
     set -euo pipefail
 
     echo "Sorting and compressing RNA cloud FASTA file..."
-    seqkit sort -j ${task.cpus} -N -o ${final_output_prefix}_rna_cloud.fasta ${fasta}
+    seqkit sort -j ${task.cpus} -N -o ${final_output_prefix}.fasta ${fasta}
 
     echo "Compressing RNA cloud FASTA file..."
-    bgzip -@ ${task.cpus} -c ${final_output_prefix}_rna_cloud.fasta > ${final_output_prefix}_rna_cloud.fasta.gz
+    bgzip -@ ${task.cpus} -c ${final_output_prefix}.fasta > ${final_output_prefix}.fasta.gz
 
     echo "Indexing uncompressed RNA cloud FASTA file..."
-    samtools faidx ${final_output_prefix}_rna_cloud.fasta
+    samtools faidx ${final_output_prefix}.fasta
 
     echo "Indexing compressed RNA cloud FASTA file..."
-    samtools faidx ${final_output_prefix}_rna_cloud.fasta.gz
+    samtools faidx ${final_output_prefix}.fasta.gz
     """
 }
